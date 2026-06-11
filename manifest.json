@@ -1,0 +1,55 @@
+{
+  "name": "AnnotAI Viewer",
+  "short_name": "AnnotAI",
+  "description": "A multilingual browser-based viewer, annotator, presenter and launcher for documents, media, URLs, AI tools and social platforms.",
+  "id": "/",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
+  "orientation": "any",
+  "background_color": "#111827",
+  "theme_color": "#2563eb",
+  "categories": [
+    "productivity",
+    "education",
+    "utilities",
+    "business"
+  ],
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Open AnnotAI Viewer",
+      "short_name": "Open",
+      "description": "Open the AnnotAI Viewer workspace",
+      "url": "./index.html",
+      "icons": [
+        {
+          "src": "./icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

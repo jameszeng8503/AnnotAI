@@ -1,0 +1,2921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes" />
+<title>AnnotAI Viewer</title>
+<meta name="description" content="AnnotAI Viewer is a multilingual browser-based viewer, annotator, presenter and launcher for documents, media, URLs, AI tools and social platforms.">
+
+<meta name="theme-color" content="#2563eb">
+<meta name="background-color" content="#111827">
+
+<link rel="manifest" href="./manifest.json">
+
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512.png">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+<meta name="application-name" content="AnnotAI Viewer">
+<meta name="apple-mobile-web-app-title" content="AnnotAI">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+
+<meta property="og:title" content="AnnotAI Viewer">
+<meta property="og:description" content="A multilingual browser-based viewer, annotator, presenter and launcher for documents, media, URLs, AI tools and social platforms.">
+<meta property="og:type" content="website">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+
+  <style>
+    :root {
+      --bg: #111827;
+      --panel: rgba(17, 24, 39, 0.985);
+      --panel2: rgba(31, 41, 55, 0.98);
+      --border: rgba(255, 255, 255, 0.16);
+      --text: #ffffff;
+      --muted: rgba(255, 255, 255, 0.75);
+      --blue: #2563eb;
+      --green: #16a34a;
+      --red: #dc2626;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      position: fixed;
+      inset: 0;
+    }
+
+    button,
+    label.fileButton,
+    input,
+    select {
+      font-family: inherit;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: rgba(255,255,255,0.18);
+    }
+
+    button,
+    label.fileButton {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      border-radius: 9px;
+      padding: 8px 11px;
+      font-size: 14px;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      white-space: nowrap;
+      min-height: 38px;
+      line-height: 1.2;
+    }
+
+    button:hover,
+    label.fileButton:hover {
+      background: rgba(255,255,255,0.16);
+    }
+
+    button:active,
+    label.fileButton:active {
+      transform: translateY(1px);
+    }
+
+    button.active {
+      background: var(--blue);
+      border-color: #93c5fd;
+    }
+
+    button.offActive {
+      background: var(--green);
+      border-color: #86efac;
+    }
+
+    button.danger {
+      background: rgba(220,38,38,0.24);
+      border-color: rgba(248,113,113,0.6);
+    }
+
+    button.resizeButton {
+      background: rgba(255,255,255,0.06);
+      font-size: 13px;
+      padding: 7px 9px;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    input[type="color"] {
+      width: 40px;
+      height: 36px;
+      border: none;
+      padding: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    input[type="range"] {
+      width: 98px;
+      accent-color: var(--blue);
+    }
+
+    .group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      padding-right: 8px;
+      border-right: 1px solid var(--border);
+      min-width: 0;
+    }
+
+    .group:last-child {
+      border-right: none;
+    }
+
+    .small {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .languageSelect,
+    .urlInput,
+    .toolSelect {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      border-radius: 9px;
+      padding: 8px 10px;
+      min-height: 38px;
+      font-size: 14px;
+      min-width: 0;
+    }
+
+    .languageSelect option,
+    .toolSelect option {
+      color: #111827;
+      background: #ffffff;
+    }
+
+    .languageSelect {
+      max-width: 230px;
+    }
+
+    .toolSelect {
+      width: 220px;
+      max-width: 100%;
+    }
+
+    .urlInput {
+      width: min(440px, 48vw);
+      max-width: 100%;
+    }
+
+    .launcherGroup {
+      background: rgba(37,99,235,0.12);
+      border-radius: 12px;
+      padding: 6px;
+    }
+
+    #workspace {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background:
+        radial-gradient(circle at top left, rgba(37,99,235,0.2), transparent 36%),
+        radial-gradient(circle at bottom right, rgba(22,163,74,0.12), transparent 38%),
+        #111827;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      touch-action: pan-x pan-y;
+    }
+
+    #workspace.drawingMode {
+      touch-action: none;
+    }
+
+    #contentRoot {
+      position: relative;
+      width: max-content;
+      min-width: 100%;
+      min-height: 100%;
+      padding: 24px;
+    }
+
+    #placeholder {
+      width: min(1040px, 92vw);
+      min-height: 580px;
+      margin: 0 auto;
+      border: 1px dashed rgba(255,255,255,0.28);
+      border-radius: 16px;
+      background: linear-gradient(135deg, #1f2937, #111827);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 34px;
+      text-align: center;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    #placeholder h2 {
+      color: #fff;
+      margin-top: 0;
+      font-size: 32px;
+    }
+
+    #placeholder ul {
+      text-align: left;
+      display: inline-block;
+      max-width: 880px;
+    }
+
+    html[dir="rtl"] #placeholder ul {
+      text-align: right;
+    }
+
+    .stage {
+      position: relative;
+      margin: 0 auto 24px auto;
+      background: #fff;
+      color: #111827;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.55);
+      transform-origin: top left;
+    }
+
+    .mediaStage {
+      background: #000;
+    }
+
+    .stage img,
+    .stage video,
+    .stage canvas.pdfRenderCanvas,
+    .stage iframe {
+      display: block;
+      max-width: none;
+    }
+
+    .stage video {
+      object-fit: contain;
+      background: #000;
+    }
+
+    .docSurface {
+      width: 1000px;
+      min-height: 740px;
+      padding: 32px;
+      background: #fff;
+      color: #111827;
+      line-height: 1.55;
+      overflow: auto;
+    }
+
+    .docSurface table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 12px 0;
+    }
+
+    .docSurface th,
+    .docSurface td {
+      border: 1px solid #d1d5db;
+      padding: 6px;
+      vertical-align: top;
+    }
+
+    .docSurface pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #f3f4f6;
+      padding: 12px;
+      border-radius: 8px;
+    }
+
+    .noticeBox {
+      border: 1px solid #f59e0b;
+      background: #fffbeb;
+      color: #78350f;
+      padding: 16px;
+      border-radius: 12px;
+      margin: 12px 0;
+    }
+
+    .fileList {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .fileList li {
+      padding: 8px;
+      border-bottom: 1px solid #e5e7eb;
+      cursor: pointer;
+    }
+
+    .fileList li:hover {
+      background: #f3f4f6;
+    }
+
+    .annotationCanvas {
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: 20;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    .annotationCanvas.offMode {
+      pointer-events: none !important;
+      cursor: default;
+    }
+
+    .annotationCanvas.laserMode {
+      cursor: none;
+    }
+
+    .pdfPage {
+      position: relative;
+      margin: 0 auto 28px auto;
+      background: #fff;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      transform-origin: top center;
+    }
+
+    .pdfPageLabel {
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      z-index: 30;
+      background: rgba(0,0,0,0.65);
+      color: #fff;
+      font-size: 12px;
+      border-radius: 999px;
+      padding: 4px 8px;
+      pointer-events: none;
+    }
+
+    #laserDot {
+      position: fixed;
+      left: -9999px;
+      top: -9999px;
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      background: rgba(255,0,0,0.55);
+      border: 2px solid rgba(255,255,255,0.85);
+      box-shadow: 0 0 22px rgba(255,0,0,0.9);
+      pointer-events: none;
+      z-index: 5000;
+      transform: translate(-50%, -50%);
+      display: none;
+    }
+
+    #modalBackdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 9000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    #modal {
+      width: min(980px, 96vw);
+      max-height: 86vh;
+      overflow: auto;
+      background: #111827;
+      color: white;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 16px;
+      box-shadow: 0 30px 90px rgba(0,0,0,0.65);
+      padding: 22px;
+      line-height: 1.5;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #modal h2,
+    #modal h3 {
+      margin-top: 0;
+    }
+
+    #modal table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+    }
+
+    #modal th,
+    #modal td {
+      border: 1px solid rgba(255,255,255,0.18);
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    html[dir="rtl"] #modal th,
+    html[dir="rtl"] #modal td {
+      text-align: right;
+    }
+
+    #modal th {
+      background: rgba(255,255,255,0.08);
+    }
+
+    #modalCloseBtn {
+      float: right;
+    }
+
+    html[dir="rtl"] #modalCloseBtn {
+      float: left;
+    }
+
+    #floatingToolbar {
+      position: fixed;
+      left: 16px;
+      top: calc(16px + env(safe-area-inset-top));
+      z-index: 8000;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+      touch-action: none;
+    }
+
+    #floatingToolbar.collapsed #toolbarPanel {
+      display: none !important;
+    }
+
+    #floatingToolbar.expanded #toolbarDot {
+      display: none !important;
+    }
+
+    #floatingToolbar.collapsed {
+      width: 56px;
+      height: 56px;
+    }
+
+    #toolbarDot {
+      width: 56px;
+      height: 56px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.32);
+      background: rgba(37,99,235,0.96);
+      color: #fff;
+      font-size: 25px;
+      font-weight: 800;
+      box-shadow: 0 14px 34px rgba(0,0,0,0.48);
+      cursor: grab;
+      touch-action: none;
+      padding: 0;
+      line-height: 1;
+      pointer-events: auto;
+    }
+
+    #toolbarDot:active {
+      cursor: grabbing;
+      transform: scale(0.96);
+    }
+
+    #toolbarPanel {
+      width: min(1120px, calc(100vw - 24px));
+      height: auto;
+      min-width: 360px;
+      min-height: 180px;
+      max-width: calc(100vw - 24px);
+      max-height: calc(100vh - 24px);
+      overflow: hidden;
+      resize: both;
+      border-radius: 16px;
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.2);
+      box-shadow: 0 24px 70px rgba(0,0,0,0.62);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      pointer-events: auto;
+    }
+
+    #toolbarHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 12px;
+      background: var(--panel2);
+      border-bottom: 1px solid rgba(255,255,255,0.14);
+      cursor: grab;
+      touch-action: none;
+    }
+
+    #toolbarHeaderControls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    #toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      align-content: flex-start;
+      padding: 10px;
+      background: transparent;
+      overflow: auto;
+      max-height: calc(100vh - 110px);
+      height: calc(100% - 52px);
+      min-height: 128px;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      touch-action: pan-x pan-y !important;
+    }
+
+    #toolbar button,
+    #toolbar label.fileButton {
+      touch-action: manipulation !important;
+      pointer-events: auto !important;
+      flex: 0 0 auto;
+    }
+
+    #toolbar input,
+    #toolbar select {
+      touch-action: auto !important;
+    }
+
+    #status {
+      font-size: 13px;
+      color: var(--muted);
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: normal;
+    }
+
+    @media (max-width: 760px) {
+      #floatingToolbar {
+        left: 12px;
+        top: calc(12px + env(safe-area-inset-top));
+      }
+
+      #toolbarPanel {
+        width: calc(100vw - 24px) !important;
+        max-height: 76vh;
+        min-width: 300px;
+        resize: vertical;
+      }
+
+      #toolbar {
+        gap: 6px;
+        padding: 8px;
+        max-height: calc(76vh - 54px);
+      }
+
+      #toolbar .group {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid rgba(255,255,255,0.14);
+        padding-bottom: 6px;
+      }
+
+      #toolbar .group:last-child {
+        border-bottom: none;
+      }
+
+      .urlInput,
+      .toolSelect {
+        width: 100%;
+      }
+
+      #contentRoot {
+        padding: 12px;
+      }
+
+      #placeholder {
+        min-height: 440px;
+        width: 94vw;
+        padding: 22px;
+      }
+
+      .docSurface {
+        width: calc(100vw - 32px);
+        min-height: 700px;
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="floatingToolbar" class="collapsed" aria-label="Floating AnnotAI toolbar">
+    <button id="toolbarDot" type="button" aria-label="Open AnnotAI toolbar">✎</button>
+
+    <div id="toolbarPanel">
+      <div id="toolbarHeader">
+        <strong id="toolbarTitle">Annotation AI Tools</strong>
+        <div id="toolbarHeaderControls">
+          <button id="panelNarrowerBtn" class="resizeButton" type="button">Narrower</button>
+          <button id="panelWiderBtn" class="resizeButton" type="button">Wider</button>
+          <button id="panelShorterBtn" class="resizeButton" type="button">Shorter</button>
+          <button id="panelTallerBtn" class="resizeButton" type="button">Taller</button>
+          <button id="collapseToolbarBtn" type="button">Collapse</button>
+        </div>
+      </div>
+
+      <div id="toolbar">
+        <div class="group">
+          <label id="openFileLabel" class="fileButton">
+            Open File
+            <input
+              id="fileInput"
+              type="file"
+              accept="image/*,video/*,.pdf,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.rtf,.csv,.zip,.rar,.epub,.mobi"
+            />
+          </label>
+        </div>
+
+        <div class="group">
+          <span id="urlLabel" class="small">URL</span>
+          <input id="urlInput" class="urlInput" type="url" placeholder="Paste document, media, or social URL" />
+          <button id="loadUrlBtn" type="button">Load URL</button>
+          <button id="openUrlExternalBtn" type="button">Open External</button>
+          <button id="settingsBtn" type="button">Settings</button>
+          <button id="helpBtn" type="button">Help</button>
+        </div>
+
+        <div class="group" id="languageGroup" style="display:none;">
+          <span id="languageLabel" class="small">Language</span>
+          <select id="languageSelect" class="languageSelect" aria-label="Interface language">
+            <option value="ar">Arabic — العربية</option>
+            <option value="bn">Bengali — বাংলা</option>
+            <option value="zh">Chinese — 中文</option>
+            <option value="en">English</option>
+            <option value="fr">French — Français</option>
+            <option value="de">German — Deutsch</option>
+            <option value="hi">Hindi — हिन्दी</option>
+            <option value="id">Indonesian — Bahasa Indonesia</option>
+            <option value="it">Italian — Italiano</option>
+            <option value="ja">Japanese — 日本語</option>
+            <option value="ko">Korean — 한국어</option>
+            <option value="pt">Portuguese — Português</option>
+            <option value="ru">Russian — Русский</option>
+            <option value="es">Spanish — Español</option>
+            <option value="tr">Turkish — Türkçe</option>
+            <option value="ur">Urdu — اردو</option>
+            <option value="vi">Vietnamese — Tiếng Việt</option>
+          </select>
+        </div>
+
+        <div class="group launcherGroup">
+          <span id="launcherLabel" class="small">Launch</span>
+
+          <select id="aiEnSelect" class="toolSelect" aria-label="AI Tools EN">
+            <option value="">AI Tools (EN)</option>
+          </select>
+          <button id="openAiEnBtn" type="button">Open</button>
+
+          <select id="aiCnSelect" class="toolSelect" aria-label="AI Tools CN">
+            <option value="">AI Tools (CN)</option>
+          </select>
+          <button id="openAiCnBtn" type="button">Open</button>
+
+          <select id="mediaEnSelect" class="toolSelect" aria-label="Media EN">
+            <option value="">Media (EN)</option>
+          </select>
+          <button id="openMediaEnBtn" type="button">Open</button>
+
+          <select id="mediaCnSelect" class="toolSelect" aria-label="Media CN">
+            <option value="">Media (CN)</option>
+          </select>
+          <button id="openMediaCnBtn" type="button">Open</button>
+        </div>
+
+        <div class="group">
+          <button id="offBtn" type="button">OFF / Interact</button>
+          <button id="penBtn" type="button">Pen</button>
+          <button id="highlighterBtn" type="button">Highlighter</button>
+          <button id="eraserBtn" type="button">Erase</button>
+          <button id="laserBtn" type="button">Laser</button>
+        </div>
+
+        <div class="group">
+          <span id="colorLabel" class="small">Color</span>
+          <input id="colorInput" type="color" value="#ff0000" />
+          <span id="sizeTextLabel" class="small">Size</span>
+          <input id="sizeInput" type="range" min="1" max="80" value="5" />
+          <span id="sizeLabel" class="small">5</span>
+        </div>
+
+        <div class="group">
+          <button id="zoomOutBtn" type="button">Zoom −</button>
+          <span id="zoomLabel" class="small">100%</span>
+          <button id="zoomInBtn" type="button">Zoom +</button>
+          <button id="zoomResetBtn" type="button">Reset</button>
+          <button id="fitWidthBtn" type="button">Fit Width</button>
+        </div>
+
+        <div class="group">
+          <button id="undoBtn" type="button">Undo</button>
+          <button id="redoBtn" type="button">Redo</button>
+          <button id="clearViewBtn" type="button">Clear Page/View</button>
+          <button id="clearAllBtn" class="danger" type="button">Clear All</button>
+        </div>
+
+        <div class="group">
+          <button id="saveJsonBtn" type="button">Save JSON</button>
+          <label id="loadJsonLabel" class="fileButton">
+            Load JSON
+            <input id="jsonInput" type="file" accept="application/json,.json" />
+          </label>
+          <button id="exportPngBtn" type="button">Export PNG</button>
+        </div>
+
+        <div id="status">Open a local file, paste a URL, or launch an AI/social platform.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="workspace">
+    <div id="contentRoot">
+      <div id="placeholder">
+        <div>
+          <h2 id="placeholderTitle">AnnotAI Viewer</h2>
+          <p id="placeholderIntro">A browser-based viewer, annotator, presenter, and launcher for documents, media, URLs, AI tools, and social platforms.</p>
+          <ul>
+            <li id="placeholderFiles">Open images, videos, PDFs, DOCX, spreadsheets, text files, ZIP archives, EPUB eBooks, or paste a URL.</li>
+            <li id="placeholderInteract"><b>OFF / Interact</b> mode lets you scroll, use media controls, interact with embedded content, and move around zoomed documents.</li>
+            <li id="placeholderAnnotate">Use <b>Pen</b>, <b>Highlighter</b>, <b>Erase</b>, or <b>Laser</b> to annotate, teach, review, or present.</li>
+            <li id="placeholderLaunch">Use dropdown launchers for English/Chinese AI tools and English/Chinese social media platforms.</li>
+            <li id="placeholderPanel">The floating panel can be moved, resized, widened, narrowed, made taller/shorter, and scrolled to reveal all tools.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="laserDot"></div>
+
+  <div id="modalBackdrop">
+    <div id="modal">
+      <button id="modalCloseBtn" type="button">Close</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    }
+
+    const $ = (id) => document.getElementById(id);
+
+    const fileInput = $("fileInput");
+    const jsonInput = $("jsonInput");
+    const workspace = $("workspace");
+    const contentRoot = $("contentRoot");
+    const statusEl = $("status");
+
+    const toolbarTitle = $("toolbarTitle");
+    const openFileLabel = $("openFileLabel");
+    const loadJsonLabel = $("loadJsonLabel");
+
+    const helpBtn = $("helpBtn");
+    const settingsBtn = $("settingsBtn");
+    const languageGroup = $("languageGroup");
+    const languageSelect = $("languageSelect");
+    const languageLabel = $("languageLabel");
+
+    const urlLabel = $("urlLabel");
+    const urlInput = $("urlInput");
+    const loadUrlBtn = $("loadUrlBtn");
+    const openUrlExternalBtn = $("openUrlExternalBtn");
+
+    const launcherLabel = $("launcherLabel");
+    const aiEnSelect = $("aiEnSelect");
+    const aiCnSelect = $("aiCnSelect");
+    const mediaEnSelect = $("mediaEnSelect");
+    const mediaCnSelect = $("mediaCnSelect");
+    const openAiEnBtn = $("openAiEnBtn");
+    const openAiCnBtn = $("openAiCnBtn");
+    const openMediaEnBtn = $("openMediaEnBtn");
+    const openMediaCnBtn = $("openMediaCnBtn");
+
+    const modalBackdrop = $("modalBackdrop");
+    const modalContent = $("modalContent");
+    const modalCloseBtn = $("modalCloseBtn");
+
+    const offBtn = $("offBtn");
+    const penBtn = $("penBtn");
+    const highlighterBtn = $("highlighterBtn");
+    const eraserBtn = $("eraserBtn");
+    const laserBtn = $("laserBtn");
+
+    const colorInput = $("colorInput");
+    const colorLabel = $("colorLabel");
+    const sizeInput = $("sizeInput");
+    const sizeTextLabel = $("sizeTextLabel");
+    const sizeLabel = $("sizeLabel");
+
+    const zoomOutBtn = $("zoomOutBtn");
+    const zoomInBtn = $("zoomInBtn");
+    const zoomResetBtn = $("zoomResetBtn");
+    const fitWidthBtn = $("fitWidthBtn");
+    const zoomLabel = $("zoomLabel");
+
+    const undoBtn = $("undoBtn");
+    const redoBtn = $("redoBtn");
+    const clearViewBtn = $("clearViewBtn");
+    const clearAllBtn = $("clearAllBtn");
+
+    const saveJsonBtn = $("saveJsonBtn");
+    const exportPngBtn = $("exportPngBtn");
+    const laserDot = $("laserDot");
+
+    const placeholderTitle = $("placeholderTitle");
+    const placeholderIntro = $("placeholderIntro");
+    const placeholderFiles = $("placeholderFiles");
+    const placeholderInteract = $("placeholderInteract");
+    const placeholderAnnotate = $("placeholderAnnotate");
+    const placeholderLaunch = $("placeholderLaunch");
+    const placeholderPanel = $("placeholderPanel");
+
+    const floatingToolbar = $("floatingToolbar");
+    const toolbarDot = $("toolbarDot");
+    const toolbarPanel = $("toolbarPanel");
+    const toolbarHeader = $("toolbarHeader");
+    const collapseToolbarBtn = $("collapseToolbarBtn");
+
+    const panelNarrowerBtn = $("panelNarrowerBtn");
+    const panelWiderBtn = $("panelWiderBtn");
+    const panelShorterBtn = $("panelShorterBtn");
+    const panelTallerBtn = $("panelTallerBtn");
+
+    let mode = "off";
+    let currentFileName = "untitled";
+    let currentType = null;
+    let zoom = 1;
+    let activeCanvas = null;
+    let activeKey = "main";
+    let drawing = false;
+    let currentStroke = null;
+    let pdfDoc = null;
+    let pdfBaseScale = 1.45;
+    let objectUrlToRevoke = null;
+    let currentLanguage = "en";
+
+    const annotations = {
+      main: { strokes: [], redo: [], width: 1, height: 1 },
+      pdfPages: {}
+    };
+
+    const aiToolsEn = [
+      ["ChatGPT", "OpenAI", "General AI assistant, coding, writing, multimodal tasks", "https://chatgpt.com/"],
+      ["Claude", "Anthropic", "Long-form writing, reasoning, document analysis", "https://claude.ai/"],
+      ["Gemini", "Google", "Search-connected AI, multimodal, Google ecosystem", "https://gemini.google.com/"],
+      ["Microsoft Copilot", "Microsoft", "Office, Windows, Edge, enterprise productivity", "https://copilot.microsoft.com/"],
+      ["Perplexity", "Perplexity AI", "AI search, citations, research", "https://www.perplexity.ai/"],
+      ["NotebookLM", "Google", "Source-based research, document/audio summaries", "https://notebooklm.google.com/"],
+      ["Grok", "xAI", "X/Twitter-connected assistant, real-time discussion", "https://grok.com/"],
+      ["Poe", "Quora", "Multi-model chatbot platform", "https://poe.com/"],
+      ["Mistral Le Chat", "Mistral AI", "European AI assistant, strong open-model ecosystem", "https://chat.mistral.ai/"],
+      ["Meta AI", "Meta", "Social/media assistant, image generation, Meta ecosystem", "https://www.meta.ai/"]
+    ];
+
+    const aiToolsCn = [
+      ["DeepSeek / 深度求索", "DeepSeek", "Reasoning, coding, general chat", "https://chat.deepseek.com/"],
+      ["Kimi / Kimi 智能助手", "Moonshot AI / 月之暗面", "Long-context reading, document analysis", "https://kimi.moonshot.cn/"],
+      ["Qwen / 通义千问", "Alibaba / 阿里巴巴", "General chat, coding, enterprise AI", "https://tongyi.aliyun.com/"],
+      ["ERNIE Bot / 文心一言", "Baidu / 百度", "Chinese knowledge, writing, Baidu ecosystem", "https://yiyan.baidu.com/"],
+      ["Doubao / 豆包", "ByteDance / 字节跳动", "Everyday assistant, writing, multimodal", "https://www.doubao.com/"],
+      ["Zhipu Qingyan / 智谱清言", "Zhipu AI / 智谱 AI", "GLM models, Chinese chat, productivity", "https://chatglm.cn/"],
+      ["iFlytek Spark / 讯飞星火", "iFlytek / 科大讯飞", "Speech, education, Chinese productivity", "https://xinghuo.xfyun.cn/"],
+      ["Tencent Yuanbao / 腾讯元宝", "Tencent / 腾讯", "Tencent ecosystem, search, documents", "https://yuanbao.tencent.com/"],
+      ["Hailuo AI / 海螺 AI", "MiniMax", "Chat, image/video/voice generation", "https://hailuoai.com/"],
+      ["StepFun Yuewen / 阶跃星辰 / 跃问", "StepFun", "General chat, multimodal assistant", "https://yuewen.cn/"]
+    ];
+
+    const mediaEn = [
+      ["Facebook", "Meta", "Social networking, groups, pages, communities", "https://www.facebook.com/"],
+      ["YouTube", "Google", "Video sharing, streaming, education, creators", "https://www.youtube.com/"],
+      ["Instagram", "Meta", "Photos, short videos, Reels, creators", "https://www.instagram.com/"],
+      ["TikTok", "ByteDance", "Short-form videos, livestreams, trends", "https://www.tiktok.com/"],
+      ["X / Twitter", "X Corp.", "Real-time news, posts, public discussion", "https://x.com/"],
+      ["LinkedIn", "Microsoft", "Professional networking, jobs, business content", "https://www.linkedin.com/"],
+      ["Reddit", "Reddit Inc.", "Forums, communities, discussions", "https://www.reddit.com/"],
+      ["Snapchat", "Snap Inc.", "Messaging, stories, AR filters, short media", "https://www.snapchat.com/"],
+      ["Pinterest", "Pinterest Inc.", "Image discovery, ideas, shopping inspiration", "https://www.pinterest.com/"],
+      ["WhatsApp Channels / Communities", "Meta", "Messaging, communities, broadcasts", "https://www.whatsapp.com/"]
+    ];
+
+    const mediaCn = [
+      ["WeChat / 微信", "Tencent / 腾讯", "Messaging, social feed, payments, mini programs", "https://weixin.qq.com/"],
+      ["Douyin / 抖音", "ByteDance / 字节跳动", "Short videos, livestreams, e-commerce", "https://www.douyin.com/"],
+      ["Xiaohongshu / RedNote / 小红书", "Xiaohongshu", "Lifestyle, product discovery, reviews, short posts", "https://www.xiaohongshu.com/"],
+      ["Weibo / 微博", "Sina / 新浪", "Public microblogging, trends, celebrities, news", "https://weibo.com/"],
+      ["Bilibili / 哔哩哔哩", "Bilibili Inc.", "Long/short videos, anime, gaming, learning, communities", "https://www.bilibili.com/"],
+      ["Kuaishou / 快手", "Kuaishou", "Short videos, livestreams, creators, e-commerce", "https://www.kuaishou.com/"],
+      ["QQ", "Tencent / 腾讯", "Messaging, groups, communities, social networking", "https://im.qq.com/"],
+      ["Zhihu / 知乎", "Zhihu Inc.", "Q&A, knowledge sharing, articles", "https://www.zhihu.com/"],
+      ["Tieba / 百度贴吧", "Baidu / 百度", "Topic forums and fan communities", "https://tieba.baidu.com/"],
+      ["Toutiao / 今日头条", "ByteDance / 字节跳动", "News feed, articles, creator content, comments", "https://www.toutiao.com/"]
+    ];
+
+    const i18n = {
+      en: {
+        appTitle: "AnnotAI Viewer",
+        toolbarTitle: "Annotation AI Tools",
+        collapse: "Collapse",
+        openFile: "Open File",
+        help: "Help",
+        settings: "Settings",
+        language: "Language",
+        url: "URL",
+        loadUrl: "Load URL",
+        openExternal: "Open External",
+        launcher: "Launch",
+        open: "Open",
+        aiEn: "AI Tools (EN)",
+        aiCn: "AI Tools (CN)",
+        mediaEn: "Media (EN)",
+        mediaCn: "Media (CN)",
+        off: "OFF / Interact",
+        pen: "Pen",
+        highlighter: "Highlighter",
+        erase: "Erase",
+        laser: "Laser",
+        color: "Color",
+        size: "Size",
+        zoomOut: "Zoom −",
+        zoomIn: "Zoom +",
+        reset: "Reset",
+        fitWidth: "Fit Width",
+        undo: "Undo",
+        redo: "Redo",
+        clearView: "Clear Page/View",
+        clearAll: "Clear All",
+        saveJson: "Save JSON",
+        loadJson: "Load JSON",
+        exportPng: "Export PNG",
+        close: "Close",
+        narrower: "Narrower",
+        wider: "Wider",
+        shorter: "Shorter",
+        taller: "Taller",
+        statusReady: "Open a local file, paste a URL, or launch an AI/social platform.",
+        statusOff: "OFF / Interact mode enabled.",
+        statusPen: "Pen mode enabled. Draw on the content.",
+        statusHighlighter: "Highlighter mode enabled.",
+        statusEraser: "Eraser mode enabled.",
+        statusLaser: "Laser pointer enabled.",
+        placeholderIntro: "A browser-based viewer, annotator, presenter, and launcher for documents, media, URLs, AI tools, and social platforms.",
+        placeholderFiles: "Open images, videos, PDFs, DOCX, spreadsheets, text files, ZIP archives, EPUB eBooks, or paste a URL.",
+        placeholderInteract: "<b>OFF / Interact</b> mode lets you scroll, use media controls, interact with embedded content, and move around zoomed documents.",
+        placeholderAnnotate: "Use <b>Pen</b>, <b>Highlighter</b>, <b>Erase</b>, or <b>Laser</b> to annotate, teach, review, or present.",
+        placeholderLaunch: "Use dropdown launchers for English/Chinese AI tools and English/Chinese social media platforms.",
+        placeholderPanel: "The floating panel can be moved, resized, widened, narrowed, made taller/shorter, and scrolled to reveal all tools.",
+        selectToolAlert: "Please select an item first.",
+        openedExternal: "Opened in a new tab. Keep this viewer tab open.",
+        helpHtml: `
+          <h2>AnnotAI Viewer Help</h2>
+
+          <h3>Purpose</h3>
+          <p><b>AnnotAI Viewer</b> is a browser-based viewer, annotation canvas, presentation tool, URL loader, and launcher for AI tools and social media platforms.</p>
+
+          <h3>Toolbar layout</h3>
+          <ul>
+            <li>The title of the panel is <b>Annotation AI Tools</b>.</li>
+            <li><b>Settings</b> and <b>Help</b> are beside the URL controls, to the right of <b>Open External</b>.</li>
+            <li>The panel can be dragged by its header.</li>
+            <li>The expanded panel can be resized horizontally and vertically using the browser resize handle at its bottom-right corner.</li>
+            <li>You can also use <b>Wider</b>, <b>Narrower</b>, <b>Taller</b>, and <b>Shorter</b> to adjust the panel.</li>
+            <li>If tools do not fit, the toolbar area scrolls horizontally and vertically.</li>
+          </ul>
+
+          <h3>Main workflow</h3>
+          <ol>
+            <li>Open a local file, paste a URL, or choose a service from one of the launch dropdowns.</li>
+            <li>Use <b>OFF / Interact</b> mode when you want to scroll, play videos, use iframe controls, or interact with embedded content.</li>
+            <li>Use <b>Pen</b>, <b>Highlighter</b>, <b>Erase</b>, or <b>Laser</b> when you want to annotate or present.</li>
+            <li>Save annotations as JSON if you want to reload them later.</li>
+            <li>Export the current page/view as PNG when possible.</li>
+          </ol>
+
+          <h3>Supported local files</h3>
+          <table>
+            <tr><th>Category</th><th>Formats</th><th>Method</th></tr>
+            <tr><td>Images</td><td>PNG, JPG, JPEG, GIF, WEBP, SVG</td><td>Native browser rendering</td></tr>
+            <tr><td>Videos</td><td>MP4, WEBM, OGG, MOV</td><td>Native browser rendering where supported</td></tr>
+            <tr><td>PDF</td><td>PDF</td><td>PDF.js</td></tr>
+            <tr><td>Word</td><td>DOCX</td><td>Mammoth.js conversion to HTML</td></tr>
+            <tr><td>Spreadsheets</td><td>XLS, XLSX, CSV</td><td>SheetJS conversion to HTML tables</td></tr>
+            <tr><td>Text</td><td>TXT, RTF</td><td>Plain/simplified text display</td></tr>
+            <tr><td>Compressed</td><td>ZIP</td><td>JSZip listing and text preview</td></tr>
+            <tr><td>eBook</td><td>EPUB</td><td>JSZip simplified HTML extraction</td></tr>
+            <tr><td>Detected only</td><td>DOC, PPT, PPTX, RAR, MOBI</td><td>Notice shown; conversion to PDF/DOCX/EPUB recommended</td></tr>
+          </table>
+
+          <h3>Dropdown launchers</h3>
+          <ul>
+            <li><b>AI Tools (EN):</b> ChatGPT, Claude, Gemini, Microsoft Copilot, Perplexity, NotebookLM, Grok, Poe, Mistral Le Chat, Meta AI.</li>
+            <li><b>AI Tools (CN):</b> DeepSeek, Kimi, Qwen, ERNIE Bot, Doubao, Zhipu Qingyan, iFlytek Spark, Tencent Yuanbao, Hailuo AI, StepFun Yuewen.</li>
+            <li><b>Media (EN):</b> Facebook, YouTube, Instagram, TikTok, X/Twitter, LinkedIn, Reddit, Snapchat, Pinterest, WhatsApp.</li>
+            <li><b>Media (CN):</b> WeChat, Douyin, Xiaohongshu, Weibo, Bilibili, Kuaishou, QQ, Zhihu, Tieba, Toutiao.</li>
+          </ul>
+
+          <h3>Keyboard shortcuts</h3>
+          <table>
+            <tr><th>Shortcut</th><th>Action</th></tr>
+            <tr><td>O</td><td>OFF / Interact</td></tr>
+            <tr><td>P</td><td>Pen</td></tr>
+            <tr><td>H</td><td>Highlighter</td></tr>
+            <tr><td>E</td><td>Erase</td></tr>
+            <tr><td>L</td><td>Laser</td></tr>
+            <tr><td>Ctrl/⌘ + Z</td><td>Undo</td></tr>
+            <tr><td>Ctrl/⌘ + Y</td><td>Redo</td></tr>
+            <tr><td>Ctrl/⌘ + +</td><td>Zoom in</td></tr>
+            <tr><td>Ctrl/⌘ + -</td><td>Zoom out</td></tr>
+            <tr><td>Ctrl/⌘ + 0</td><td>Reset zoom</td></tr>
+          </table>
+
+          <h3>Important limitations</h3>
+          <ul>
+            <li>Browser security prevents drawing over other apps, other tabs, or system windows.</li>
+            <li>Some websites and social platforms block iframe embedding using CSP or X-Frame-Options.</li>
+            <li>Private social posts, login-only content, and API-protected content cannot be fetched without authorization.</li>
+            <li>Export PNG cannot capture cross-origin iframe content.</li>
+          </ul>
+        `
+      },
+      zh: {
+        appTitle: "AnnotAI 查看器",
+        toolbarTitle: "Annotation AI Tools",
+        collapse: "收起",
+        openFile: "打开文件",
+        help: "帮助",
+        settings: "设置",
+        language: "语言",
+        url: "网址",
+        loadUrl: "载入网址",
+        openExternal: "外部打开",
+        launcher: "启动",
+        open: "打开",
+        aiEn: "英文 AI 工具",
+        aiCn: "中文 AI 工具",
+        mediaEn: "英文媒体",
+        mediaCn: "中文媒体",
+        off: "关闭 / 交互",
+        pen: "画笔",
+        highlighter: "荧光笔",
+        erase: "橡皮擦",
+        laser: "激光笔",
+        color: "颜色",
+        size: "大小",
+        zoomOut: "缩小 −",
+        zoomIn: "放大 +",
+        reset: "重置",
+        fitWidth: "适应宽度",
+        undo: "撤销",
+        redo: "重做",
+        clearView: "清除此页/视图",
+        clearAll: "全部清除",
+        saveJson: "保存 JSON",
+        loadJson: "载入 JSON",
+        exportPng: "导出 PNG",
+        close: "关闭",
+        narrower: "变窄",
+        wider: "变宽",
+        shorter: "变矮",
+        taller: "变高",
+        statusReady: "打开本地文件、粘贴网址，或启动 AI/社交平台。",
+        statusOff: "已启用关闭 / 交互模式。",
+        statusPen: "已启用画笔模式。可在内容上绘制。",
+        statusHighlighter: "已启用荧光笔模式。",
+        statusEraser: "已启用橡皮擦模式。",
+        statusLaser: "已启用激光笔。",
+        placeholderIntro: "一个基于浏览器的查看器、标注工具、演示工具、网址载入器，以及 AI 工具和社交平台启动器。",
+        placeholderFiles: "可打开图片、视频、PDF、DOCX、电子表格、文本文件、ZIP 压缩包、EPUB 电子书，或粘贴网址。",
+        placeholderInteract: "<b>关闭 / 交互</b>模式可用于滚动、使用媒体控件、与嵌入内容交互，以及移动缩放后的文档。",
+        placeholderAnnotate: "使用<b>画笔</b>、<b>荧光笔</b>、<b>橡皮擦</b>或<b>激光笔</b>进行标注、教学、审阅或演示。",
+        placeholderLaunch: "使用下拉启动器打开英文/中文 AI 工具，以及英文/中文社交媒体平台。",
+        placeholderPanel: "浮动面板可以移动、调整大小、变宽、变窄、变高、变矮，并可滚动以显示全部工具。",
+        selectToolAlert: "请先选择一个项目。",
+        openedExternal: "已在新标签页打开。请保持此查看器标签页开启。",
+        helpHtml: `
+          <h2>AnnotAI 查看器帮助</h2>
+
+          <h3>用途</h3>
+          <p><b>AnnotAI 查看器</b>是一个基于浏览器的文件查看器、标注画布、演示工具、网址载入器，同时也是 AI 工具和社交媒体平台启动器。</p>
+
+          <h3>工具栏布局</h3>
+          <ul>
+            <li>面板标题为 <b>Annotation AI Tools</b>。</li>
+            <li><b>设置</b>和<b>帮助</b>位于网址控制区，紧跟在<b>外部打开</b>按钮右侧。</li>
+            <li>可以通过面板顶部标题栏拖动整个面板。</li>
+            <li>展开后的面板可通过右下角调整大小控件进行横向和纵向缩放。</li>
+            <li>也可以使用<b>变宽</b>、<b>变窄</b>、<b>变高</b>和<b>变矮</b>按钮调整面板。</li>
+            <li>如果工具显示不全，工具区支持横向和纵向滚动。</li>
+          </ul>
+
+          <h3>基本使用流程</h3>
+          <ol>
+            <li>打开本地文件、粘贴网址，或从下拉列表选择一个平台。</li>
+            <li>需要滚动、播放视频、使用嵌入网页控件或与内容交互时，请使用<b>关闭 / 交互</b>模式。</li>
+            <li>需要标注或演示时，请使用<b>画笔</b>、<b>荧光笔</b>、<b>橡皮擦</b>或<b>激光笔</b>。</li>
+            <li>如需以后继续使用标注，可将标注保存为 JSON。</li>
+            <li>在可行的情况下，可将当前页面/视图导出为 PNG。</li>
+          </ol>
+
+          <h3>支持的本地文件</h3>
+          <table>
+            <tr><th>类别</th><th>格式</th><th>处理方式</th></tr>
+            <tr><td>图片</td><td>PNG、JPG、JPEG、GIF、WEBP、SVG</td><td>浏览器原生渲染</td></tr>
+            <tr><td>视频</td><td>MP4、WEBM、OGG、MOV</td><td>浏览器支持时原生播放</td></tr>
+            <tr><td>PDF</td><td>PDF</td><td>PDF.js 渲染</td></tr>
+            <tr><td>Word</td><td>DOCX</td><td>Mammoth.js 转换为 HTML</td></tr>
+            <tr><td>电子表格</td><td>XLS、XLSX、CSV</td><td>SheetJS 转换为 HTML 表格</td></tr>
+            <tr><td>文本</td><td>TXT、RTF</td><td>纯文本/简化文本显示</td></tr>
+            <tr><td>压缩包</td><td>ZIP</td><td>JSZip 列出内容并预览文本类文件</td></tr>
+            <tr><td>电子书</td><td>EPUB</td><td>JSZip 简化提取 HTML 内容</td></tr>
+            <tr><td>仅检测</td><td>DOC、PPT、PPTX、RAR、MOBI</td><td>显示提示；建议转换为 PDF、DOCX 或 EPUB</td></tr>
+          </table>
+
+          <h3>下拉启动器</h3>
+          <ul>
+            <li><b>英文 AI 工具：</b>ChatGPT、Claude、Gemini、Microsoft Copilot、Perplexity、NotebookLM、Grok、Poe、Mistral Le Chat、Meta AI。</li>
+            <li><b>中文 AI 工具：</b>DeepSeek、Kimi、通义千问、文心一言、豆包、智谱清言、讯飞星火、腾讯元宝、海螺 AI、阶跃星辰/跃问。</li>
+            <li><b>英文媒体：</b>Facebook、YouTube、Instagram、TikTok、X/Twitter、LinkedIn、Reddit、Snapchat、Pinterest、WhatsApp。</li>
+            <li><b>中文媒体：</b>微信、抖音、小红书、微博、哔哩哔哩、快手、QQ、知乎、百度贴吧、今日头条。</li>
+          </ul>
+
+          <h3>重要限制</h3>
+          <ul>
+            <li>浏览器安全机制不允许本应用在其他应用、其他标签页或系统窗口上绘制。</li>
+            <li>部分网站和社交平台会通过 CSP 或 X-Frame-Options 禁止 iframe 嵌入。</li>
+            <li>私密内容、登录后内容或 API 保护内容，未经授权无法抓取。</li>
+            <li>导出 PNG 无法捕获跨域 iframe 内容。</li>
+          </ul>
+        `
+      }
+    };
+
+    const quickLangs = {
+      fr:["AnnotAI Viewer","Annotation AI Tools","Réduire","Ouvrir un fichier","Aide","Paramètres","Langue","URL","Charger URL","Ouvrir externe","Lancer","Ouvrir","Désactivé / Interaction","Stylo","Surligneur","Effacer","Laser"],
+      de:["AnnotAI Viewer","Annotation AI Tools","Einklappen","Datei öffnen","Hilfe","Einstellungen","Sprache","URL","URL laden","Extern öffnen","Starten","Öffnen","AUS / Interaktion","Stift","Textmarker","Radieren","Laser"],
+      es:["AnnotAI Viewer","Annotation AI Tools","Contraer","Abrir archivo","Ayuda","Configuración","Idioma","URL","Cargar URL","Abrir externo","Iniciar","Abrir","APAGADO / Interactuar","Lápiz","Resaltador","Borrar","Láser"],
+      ja:["AnnotAI Viewer","Annotation AI Tools","折りたたむ","ファイルを開く","ヘルプ","設定","言語","URL","URLを読み込む","外部で開く","起動","開く","OFF / 操作","ペン","ハイライト","消去","レーザー"],
+      ko:["AnnotAI Viewer","Annotation AI Tools","접기","파일 열기","도움말","설정","언어","URL","URL 불러오기","외부 열기","실행","열기","꺼짐 / 상호작용","펜","형광펜","지우기","레이저"],
+      ru:["AnnotAI Viewer","Annotation AI Tools","Свернуть","Открыть файл","Справка","Настройки","Язык","URL","Загрузить URL","Открыть внешне","Запуск","Открыть","ВЫКЛ / Взаимодействие","Перо","Маркер","Стереть","Лазер"],
+      ar:["AnnotAI Viewer","Annotation AI Tools","طي","فتح ملف","مساعدة","الإعدادات","اللغة","رابط","تحميل الرابط","فتح خارجي","تشغيل","فتح","إيقاف / تفاعل","قلم","تمييز","مسح","ليزر"],
+      hi:["AnnotAI Viewer","Annotation AI Tools","समेटें","फ़ाइल खोलें","सहायता","सेटिंग्स","भाषा","URL","URL लोड करें","बाहरी खोलें","लॉन्च","खोलें","बंद / इंटरैक्ट","पेन","हाइलाइटर","मिटाएँ","लेज़र"],
+      pt:["AnnotAI Viewer","Annotation AI Tools","Recolher","Abrir arquivo","Ajuda","Configurações","Idioma","URL","Carregar URL","Abrir externo","Iniciar","Abrir","DESLIGADO / Interagir","Caneta","Marca-texto","Apagar","Laser"],
+      tr:["AnnotAI Viewer","Annotation AI Tools","Daralt","Dosya Aç","Yardım","Ayarlar","Dil","URL","URL Yükle","Harici Aç","Başlat","Aç","KAPALI / Etkileşim","Kalem","Vurgulayıcı","Sil","Lazer"],
+      vi:["AnnotAI Viewer","Annotation AI Tools","Thu gọn","Mở tệp","Trợ giúp","Cài đặt","Ngôn ngữ","URL","Tải URL","Mở bên ngoài","Khởi chạy","Mở","TẮT / Tương tác","Bút","Bút đánh dấu","Xóa","Laser"]
+    };
+
+    Object.keys(quickLangs).forEach(function (code) {
+      const v = quickLangs[code];
+      i18n[code] = Object.assign({}, i18n.en, {
+        appTitle:v[0],
+        toolbarTitle:v[1],
+        collapse:v[2],
+        openFile:v[3],
+        help:v[4],
+        settings:v[5],
+        language:v[6],
+        url:v[7],
+        loadUrl:v[8],
+        openExternal:v[9],
+        launcher:v[10],
+        open:v[11],
+        off:v[12],
+        pen:v[13],
+        highlighter:v[14],
+        erase:v[15],
+        laser:v[16]
+      });
+    });
+
+    function t(key) {
+      return (i18n[currentLanguage] && i18n[currentLanguage][key]) || i18n.en[key] || key;
+    }
+
+    function setText(el, value) {
+      if (el) el.textContent = value;
+    }
+
+    function setHtml(el, value) {
+      if (el) el.innerHTML = value;
+    }
+
+    function setLabelText(label, text) {
+      if (!label) return;
+      for (const node of label.childNodes) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          node.nodeValue = text + " ";
+          return;
+        }
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function setStatus(text) {
+      statusEl.textContent = text;
+    }
+
+    function openExternal(url) {
+      const a = document.createElement("a");
+      a.href = url;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => document.body.removeChild(a), 0);
+    }
+
+    function populateSelect(select, items, placeholderKey) {
+      select.innerHTML = "";
+      const first = document.createElement("option");
+      first.value = "";
+      first.textContent = t(placeholderKey);
+      select.appendChild(first);
+
+      items.forEach(function (item, index) {
+        const opt = document.createElement("option");
+        opt.value = item[3];
+        opt.textContent = String(index + 1) + ". " + item[0] + " — " + item[1];
+        opt.title = item[2];
+        select.appendChild(opt);
+      });
+    }
+
+    function launchSelected(select) {
+      const url = select.value;
+      if (!url) {
+        alert(t("selectToolAlert"));
+        return;
+      }
+      openExternal(url);
+      setStatus(t("openedExternal"));
+    }
+
+    function applyLanguage(lang) {
+      currentLanguage = i18n[lang] ? lang : "en";
+      try { localStorage.setItem("annotationViewerLanguage", currentLanguage); } catch {}
+
+      document.documentElement.lang = currentLanguage;
+      document.documentElement.dir = ["ar", "ur"].includes(currentLanguage) ? "rtl" : "ltr";
+      document.title = t("appTitle");
+
+      setText(toolbarTitle, t("toolbarTitle"));
+      setText(collapseToolbarBtn, t("collapse"));
+      setText(panelNarrowerBtn, t("narrower"));
+      setText(panelWiderBtn, t("wider"));
+      setText(panelShorterBtn, t("shorter"));
+      setText(panelTallerBtn, t("taller"));
+
+      setLabelText(openFileLabel, t("openFile"));
+      setText(helpBtn, t("help"));
+      setText(settingsBtn, t("settings"));
+      setText(languageLabel, t("language"));
+
+      setText(urlLabel, t("url"));
+      setText(loadUrlBtn, t("loadUrl"));
+      setText(openUrlExternalBtn, t("openExternal"));
+
+      setText(launcherLabel, t("launcher"));
+      setText(openAiEnBtn, t("open"));
+      setText(openAiCnBtn, t("open"));
+      setText(openMediaEnBtn, t("open"));
+      setText(openMediaCnBtn, t("open"));
+
+      populateSelect(aiEnSelect, aiToolsEn, "aiEn");
+      populateSelect(aiCnSelect, aiToolsCn, "aiCn");
+      populateSelect(mediaEnSelect, mediaEn, "mediaEn");
+      populateSelect(mediaCnSelect, mediaCn, "mediaCn");
+
+      setText(offBtn, t("off"));
+      setText(penBtn, t("pen"));
+      setText(highlighterBtn, t("highlighter"));
+      setText(eraserBtn, t("erase"));
+      setText(laserBtn, t("laser"));
+
+      setText(colorLabel, t("color"));
+      setText(sizeTextLabel, t("size"));
+
+      setText(zoomOutBtn, t("zoomOut"));
+      setText(zoomInBtn, t("zoomIn"));
+      setText(zoomResetBtn, t("reset"));
+      setText(fitWidthBtn, t("fitWidth"));
+
+      setText(undoBtn, t("undo"));
+      setText(redoBtn, t("redo"));
+      setText(clearViewBtn, t("clearView"));
+      setText(clearAllBtn, t("clearAll"));
+
+      setText(saveJsonBtn, t("saveJson"));
+      setLabelText(loadJsonLabel, t("loadJson"));
+      setText(exportPngBtn, t("exportPng"));
+      setText(modalCloseBtn, t("close"));
+
+      setText(placeholderTitle, t("appTitle"));
+      setText(placeholderIntro, t("placeholderIntro"));
+      setText(placeholderFiles, t("placeholderFiles"));
+      setHtml(placeholderInteract, t("placeholderInteract"));
+      setHtml(placeholderAnnotate, t("placeholderAnnotate"));
+      setText(placeholderLaunch, t("placeholderLaunch"));
+      setText(placeholderPanel, t("placeholderPanel"));
+
+      if (!currentType) setStatus(t("statusReady"));
+    }
+
+    function loadSavedLanguage() {
+      let saved = "en";
+      try { saved = localStorage.getItem("annotationViewerLanguage") || "en"; } catch {}
+      if (!i18n[saved]) saved = "en";
+      currentLanguage = saved;
+      if (languageSelect) languageSelect.value = saved;
+      applyLanguage(saved);
+    }
+
+    function showModal(html) {
+      modalContent.innerHTML = html;
+      modalBackdrop.style.display = "flex";
+    }
+
+    function hideModal() {
+      modalBackdrop.style.display = "none";
+    }
+
+    modalCloseBtn.addEventListener("click", hideModal);
+    modalBackdrop.addEventListener("click", function (event) {
+      if (event.target === modalBackdrop) hideModal();
+    });
+
+    function bindButton(button, handler) {
+      if (!button) return;
+
+      let touchHandledAt = 0;
+      let startX = 0;
+      let startY = 0;
+      let moved = false;
+
+      function getPoint(event) {
+        const touch = event.changedTouches && event.changedTouches.length
+          ? event.changedTouches[0]
+          : event.touches && event.touches.length
+            ? event.touches[0]
+            : null;
+
+        return touch ? { x: touch.clientX, y: touch.clientY } : { x: event.clientX || 0, y: event.clientY || 0 };
+      }
+
+      button.addEventListener("touchstart", function (event) {
+        const p = getPoint(event);
+        startX = p.x;
+        startY = p.y;
+        moved = false;
+      }, { passive: true });
+
+      button.addEventListener("touchmove", function (event) {
+        const p = getPoint(event);
+        if (Math.abs(p.x - startX) > 10 || Math.abs(p.y - startY) > 10) moved = true;
+      }, { passive: true });
+
+      button.addEventListener("touchend", function (event) {
+        if (moved) return;
+        touchHandledAt = Date.now();
+        event.preventDefault();
+        event.stopPropagation();
+        handler(event);
+      }, { passive: false });
+
+      button.addEventListener("click", function (event) {
+        if (Date.now() - touchHandledAt < 650) {
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        handler(event);
+      }, { passive: false });
+    }
+
+    function savePanelSize() {
+      try {
+        localStorage.setItem("annotAiToolbarPanelSize", JSON.stringify({
+          width: toolbarPanel.offsetWidth,
+          height: toolbarPanel.offsetHeight
+        }));
+      } catch {}
+    }
+
+    function restorePanelSize() {
+      try {
+        const saved = JSON.parse(localStorage.getItem("annotAiToolbarPanelSize") || "null");
+        if (saved && Number.isFinite(saved.width) && Number.isFinite(saved.height)) {
+          toolbarPanel.style.width = Math.min(saved.width, window.innerWidth - 24) + "px";
+          toolbarPanel.style.height = Math.min(saved.height, window.innerHeight - 24) + "px";
+        }
+      } catch {}
+    }
+
+    function resizePanel(dw, dh) {
+      const currentWidth = toolbarPanel.offsetWidth || 900;
+      const currentHeight = toolbarPanel.offsetHeight || 360;
+
+      const nextWidth = Math.min(Math.max(360, currentWidth + dw), window.innerWidth - 24);
+      const nextHeight = Math.min(Math.max(180, currentHeight + dh), window.innerHeight - 24);
+
+      toolbarPanel.style.width = nextWidth + "px";
+      toolbarPanel.style.height = nextHeight + "px";
+      savePanelSize();
+
+      const rect = floatingToolbar.getBoundingClientRect();
+      setFloatingToolbarPosition(rect.left, rect.top);
+    }
+
+    bindButton(panelNarrowerBtn, () => resizePanel(-140, 0));
+    bindButton(panelWiderBtn, () => resizePanel(140, 0));
+    bindButton(panelShorterBtn, () => resizePanel(0, -100));
+    bindButton(panelTallerBtn, () => resizePanel(0, 100));
+
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(() => {
+        if (floatingToolbar.classList.contains("expanded")) savePanelSize();
+      });
+      ro.observe(toolbarPanel);
+    }
+
+    bindButton(openAiEnBtn, () => launchSelected(aiEnSelect));
+    bindButton(openAiCnBtn, () => launchSelected(aiCnSelect));
+    bindButton(openMediaEnBtn, () => launchSelected(mediaEnSelect));
+    bindButton(openMediaCnBtn, () => launchSelected(mediaCnSelect));
+
+    aiEnSelect.addEventListener("change", () => { if (aiEnSelect.value) launchSelected(aiEnSelect); });
+    aiCnSelect.addEventListener("change", () => { if (aiCnSelect.value) launchSelected(aiCnSelect); });
+    mediaEnSelect.addEventListener("change", () => { if (mediaEnSelect.value) launchSelected(mediaEnSelect); });
+    mediaCnSelect.addEventListener("change", () => { if (mediaCnSelect.value) launchSelected(mediaCnSelect); });
+
+    bindButton(settingsBtn, function () {
+      languageGroup.style.display = languageGroup.style.display === "none" ? "flex" : "none";
+    });
+
+    languageSelect.addEventListener("change", function () {
+      applyLanguage(languageSelect.value);
+    });
+
+    bindButton(helpBtn, function () {
+      showModal(t("helpHtml"));
+    });
+
+    function clearContent() {
+      if (objectUrlToRevoke) {
+        URL.revokeObjectURL(objectUrlToRevoke);
+        objectUrlToRevoke = null;
+      }
+
+      contentRoot.innerHTML = "";
+      currentType = null;
+      activeCanvas = null;
+      activeKey = "main";
+      annotations.main = { strokes: [], redo: [], width: 1, height: 1 };
+      annotations.pdfPages = {};
+      pdfDoc = null;
+      drawing = false;
+      currentStroke = null;
+      zoom = 1;
+      updateZoomLabel();
+      resetContentSizing();
+    }
+
+    function resetContentSizing() {
+      contentRoot.style.minWidth = "100%";
+      contentRoot.style.minHeight = "100%";
+    }
+
+    function makeStage(width, height, className = "stage") {
+      const stage = document.createElement("div");
+      stage.className = className;
+      stage.style.width = Math.round(width) + "px";
+      stage.style.height = Math.round(height) + "px";
+      return stage;
+    }
+
+    function getStoreForKey(key) {
+      if (key && key.startsWith("pdf-")) {
+        if (!annotations.pdfPages[key]) annotations.pdfPages[key] = { strokes: [], redo: [], width: 1, height: 1 };
+        return annotations.pdfPages[key];
+      }
+      return annotations.main;
+    }
+
+    function createAnnotationCanvas(width, height, key) {
+      const canvas = document.createElement("canvas");
+      canvas.className = "annotationCanvas";
+      canvas.dataset.key = key;
+      canvas.width = Math.round(width);
+      canvas.height = Math.round(height);
+      canvas.style.width = Math.round(width) + "px";
+      canvas.style.height = Math.round(height) + "px";
+
+      const store = getStoreForKey(key);
+      store.width = canvas.width;
+      store.height = canvas.height;
+
+      attachAnnotationEvents(canvas);
+
+      if (mode === "off") canvas.classList.add("offMode");
+      if (mode === "laser") canvas.classList.add("laserMode");
+
+      return canvas;
+    }
+
+    function setActiveCanvas(canvas) {
+      activeCanvas = canvas;
+      activeKey = canvas.dataset.key || "main";
+    }
+
+    function createDocumentStage(html, title, width = 1000, height = 740) {
+      clearContent();
+      currentType = "document";
+      currentFileName = title || "document";
+
+      const stage = makeStage(width, height, "stage");
+      const surface = document.createElement("div");
+      surface.className = "docSurface";
+      surface.style.width = width + "px";
+      surface.style.height = height + "px";
+      surface.innerHTML = html;
+
+      stage.appendChild(surface);
+
+      const canvas = createAnnotationCanvas(width, height, "main");
+      stage.appendChild(canvas);
+
+      contentRoot.appendChild(stage);
+      setActiveCanvas(canvas);
+      setMode("off");
+      fitWidthIfMobile();
+    }
+
+    function createIframeStage(src, title, width = 1000, height = 680, noteHtml = "") {
+      clearContent();
+      currentType = "iframe";
+      currentFileName = title || "url";
+
+      const stage = makeStage(width, height, "stage");
+      const surface = document.createElement("div");
+      surface.className = "docSurface";
+      surface.style.width = width + "px";
+      surface.style.height = height + "px";
+      surface.style.padding = "0";
+      surface.style.overflow = "hidden";
+
+      const iframe = document.createElement("iframe");
+      iframe.src = src;
+      iframe.title = title || "Embedded content";
+      iframe.width = String(width);
+      iframe.height = String(height);
+      iframe.style.border = "0";
+      iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+      iframe.allowFullscreen = true;
+      iframe.referrerPolicy = "strict-origin-when-cross-origin";
+
+      surface.appendChild(iframe);
+      stage.appendChild(surface);
+
+      const canvas = createAnnotationCanvas(width, height, "main");
+      stage.appendChild(canvas);
+
+      contentRoot.appendChild(stage);
+
+      if (noteHtml) {
+        const note = document.createElement("div");
+        note.className = "noticeBox";
+        note.style.width = width + "px";
+        note.innerHTML = noteHtml;
+        contentRoot.appendChild(note);
+      }
+
+      setActiveCanvas(canvas);
+      setMode("off");
+      fitWidthIfMobile();
+    }
+
+    function setMode(nextMode) {
+      mode = nextMode;
+
+      offBtn.classList.toggle("offActive", mode === "off");
+      penBtn.classList.toggle("active", mode === "pen");
+      highlighterBtn.classList.toggle("active", mode === "highlighter");
+      eraserBtn.classList.toggle("active", mode === "eraser");
+      laserBtn.classList.toggle("active", mode === "laser");
+
+      workspace.classList.toggle("drawingMode", mode !== "off");
+
+      document.querySelectorAll(".annotationCanvas").forEach(function (canvas) {
+        canvas.classList.toggle("offMode", mode === "off");
+        canvas.classList.toggle("laserMode", mode === "laser");
+      });
+
+      if (mode !== "laser") hideLaser();
+
+      if (mode === "off") setStatus(t("statusOff"));
+      if (mode === "pen") setStatus(t("statusPen"));
+      if (mode === "highlighter") setStatus(t("statusHighlighter"));
+      if (mode === "eraser") setStatus(t("statusEraser"));
+      if (mode === "laser") setStatus(t("statusLaser"));
+    }
+
+    bindButton(offBtn, () => setMode("off"));
+    bindButton(penBtn, () => setMode("pen"));
+    bindButton(highlighterBtn, () => setMode("highlighter"));
+    bindButton(eraserBtn, () => setMode("eraser"));
+    bindButton(laserBtn, () => setMode("laser"));
+
+    sizeInput.addEventListener("input", function () {
+      sizeLabel.textContent = sizeInput.value;
+    });
+
+    function updateZoomLabel() {
+      zoomLabel.textContent = Math.round(zoom * 100) + "%";
+    }
+
+    function eventClientPoint(event) {
+      if (event.touches && event.touches.length) return { clientX: event.touches[0].clientX, clientY: event.touches[0].clientY };
+      if (event.changedTouches && event.changedTouches.length) return { clientX: event.changedTouches[0].clientX, clientY: event.changedTouches[0].clientY };
+      return { clientX: event.clientX, clientY: event.clientY };
+    }
+
+    function canvasPoint(event, canvas) {
+      const point = eventClientPoint(event);
+      const rect = canvas.getBoundingClientRect();
+
+      return {
+        x: (point.clientX - rect.left) * (canvas.width / rect.width),
+        y: (point.clientY - rect.top) * (canvas.height / rect.height)
+      };
+    }
+
+    function drawStroke(ctx, stroke) {
+      if (!stroke.points || stroke.points.length < 1) return;
+
+      ctx.save();
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.lineWidth = stroke.size;
+
+      if (stroke.tool === "eraser") {
+        ctx.globalCompositeOperation = "destination-out";
+        ctx.strokeStyle = "rgba(0,0,0,1)";
+        ctx.globalAlpha = 1;
+      } else {
+        ctx.globalCompositeOperation = "source-over";
+        ctx.strokeStyle = stroke.color;
+        ctx.globalAlpha = stroke.tool === "highlighter" ? 0.35 : 1;
+      }
+
+      ctx.beginPath();
+
+      if (stroke.points.length === 1) {
+        const p = stroke.points[0];
+        ctx.arc(p.x, p.y, Math.max(1, stroke.size / 2), 0, Math.PI * 2);
+        ctx.fillStyle = stroke.tool === "eraser" ? "rgba(0,0,0,1)" : stroke.color;
+        ctx.fill();
+        ctx.restore();
+        return;
+      }
+
+      ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+
+      for (let i = 1; i < stroke.points.length - 1; i++) {
+        const p = stroke.points[i];
+        const next = stroke.points[i + 1];
+        ctx.quadraticCurveTo(p.x, p.y, (p.x + next.x) / 2, (p.y + next.y) / 2);
+      }
+
+      const last = stroke.points[stroke.points.length - 1];
+      ctx.lineTo(last.x, last.y);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function redrawCanvas(canvas) {
+      if (!canvas) return;
+      const key = canvas.dataset.key || "main";
+      const store = getStoreForKey(key);
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const stroke of store.strokes) drawStroke(ctx, stroke);
+    }
+
+    function redrawAll() {
+      document.querySelectorAll(".annotationCanvas").forEach(redrawCanvas);
+    }
+
+    function attachAnnotationEvents(canvas) {
+      canvas.addEventListener("pointerdown", function (event) {
+        if (mode === "off") return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        setActiveCanvas(canvas);
+
+        if (mode === "laser") {
+          showLaser(event);
+          try { canvas.setPointerCapture(event.pointerId); } catch {}
+          return;
+        }
+
+        drawing = true;
+        try { canvas.setPointerCapture(event.pointerId); } catch {}
+
+        const store = getStoreForKey(activeKey);
+        store.redo = [];
+
+        currentStroke = {
+          tool: mode,
+          color: colorInput.value,
+          size: Number(sizeInput.value),
+          points: [canvasPoint(event, canvas)]
+        };
+
+        store.strokes.push(currentStroke);
+        redrawCanvas(canvas);
+      }, { passive: false });
+
+      canvas.addEventListener("pointermove", function (event) {
+        if (mode === "off") return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (mode === "laser") {
+          showLaser(event);
+          return;
+        }
+
+        if (!drawing || !currentStroke) return;
+        currentStroke.points.push(canvasPoint(event, canvas));
+        redrawCanvas(canvas);
+      }, { passive: false });
+
+      canvas.addEventListener("pointerup", function (event) {
+        if (mode === "laser") {
+          hideLaser();
+          try {
+            if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+          } catch {}
+          return;
+        }
+
+        finishDrawing(event, canvas);
+      }, { passive: false });
+
+      canvas.addEventListener("pointercancel", function (event) {
+        hideLaser();
+        finishDrawing(event, canvas);
+      }, { passive: false });
+
+      canvas.addEventListener("pointerleave", function () {
+        if (mode === "laser") hideLaser();
+      });
+    }
+
+    function finishDrawing(event, canvas) {
+      if (!drawing) return;
+
+      drawing = false;
+      currentStroke = null;
+
+      try {
+        if (event && canvas && canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+      } catch {}
+    }
+
+    function showLaser(event) {
+      const point = eventClientPoint(event);
+      const size = Math.max(8, Number(sizeInput.value) * 3);
+
+      laserDot.style.width = size + "px";
+      laserDot.style.height = size + "px";
+      laserDot.style.background = hexToRgba(colorInput.value, 0.55);
+      laserDot.style.boxShadow = "0 0 " + size + "px " + hexToRgba(colorInput.value, 0.95);
+      laserDot.style.left = point.clientX + "px";
+      laserDot.style.top = point.clientY + "px";
+      laserDot.style.display = "block";
+    }
+
+    function hideLaser() {
+      laserDot.style.display = "none";
+    }
+
+    function hexToRgba(hex, alpha) {
+      const value = String(hex || "#ff0000").replace("#", "");
+      const bigint = parseInt(value, 16);
+      const r = (bigint >> 16) & 255;
+      const g = (bigint >> 8) & 255;
+      const b = bigint & 255;
+      return "rgba(" + r + ", " + g + ", " + b + ", " + alpha + ")";
+    }
+
+    function extensionOf(nameOrUrl) {
+      const clean = String(nameOrUrl || "").split("?")[0].split("#")[0].toLowerCase();
+      const m = clean.match(/\.([a-z0-9]+)$/);
+      return m ? m[1] : "";
+    }
+
+    fileInput.addEventListener("change", async function () {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) return;
+
+      currentFileName = file.name;
+
+      try {
+        await openLocalFile(file);
+      } catch (err) {
+        console.error(err);
+        alert("Could not open this file: " + err.message);
+      }
+
+      fileInput.value = "";
+    });
+
+    async function openLocalFile(file) {
+      const name = file.name || "";
+      const ext = extensionOf(name);
+      const type = file.type || "";
+
+      if (type.startsWith("image/")) return openImage(file);
+      if (type.startsWith("video/")) return openVideo(file);
+      if (type === "application/pdf" || ext === "pdf") return openPdf(file);
+
+      if (ext === "docx") return openDocx(file);
+      if (["xlsx", "xls", "csv"].includes(ext)) return openSpreadsheet(file);
+      if (ext === "txt") return openTextFile(file, "Text file");
+      if (ext === "rtf") return openRtf(file);
+      if (ext === "zip") return openZip(file);
+      if (ext === "epub") return openEpub(file);
+
+      if (["doc", "ppt", "pptx", "rar", "mobi"].includes(ext)) {
+        return openUnsupportedButDetected(file, ext);
+      }
+
+      alert("Unsupported file type: " + ext);
+    }
+
+    async function openImage(file) {
+      clearContent();
+      currentType = "image";
+      currentFileName = file.name;
+
+      const url = URL.createObjectURL(file);
+      objectUrlToRevoke = url;
+
+      const img = document.createElement("img");
+      img.alt = file.name;
+
+      img.onload = function () {
+        const width = img.naturalWidth || img.width || 1000;
+        const height = img.naturalHeight || img.height || 700;
+
+        const stage = makeStage(width, height, "stage mediaStage");
+        img.width = width;
+        img.height = height;
+        stage.appendChild(img);
+
+        const canvas = createAnnotationCanvas(width, height, "main");
+        stage.appendChild(canvas);
+        contentRoot.appendChild(stage);
+
+        setActiveCanvas(canvas);
+        setMode("off");
+        fitWidthIfMobile();
+        setStatus("Image opened: " + file.name);
+      };
+
+      img.onerror = function () { alert("Could not load image."); };
+      img.src = url;
+    }
+
+    async function openVideo(file) {
+      clearContent();
+      currentType = "video";
+      currentFileName = file.name;
+
+      const url = URL.createObjectURL(file);
+      objectUrlToRevoke = url;
+
+      const video = document.createElement("video");
+      video.controls = true;
+      video.playsInline = true;
+      video.setAttribute("playsinline", "");
+      video.setAttribute("webkit-playsinline", "");
+      video.preload = "metadata";
+      video.src = url;
+
+      video.onloadedmetadata = function () {
+        const width = video.videoWidth || 960;
+        const height = video.videoHeight || 540;
+
+        video.width = width;
+        video.height = height;
+
+        const stage = makeStage(width, height, "stage mediaStage");
+        stage.appendChild(video);
+
+        const canvas = createAnnotationCanvas(width, height, "main");
+        stage.appendChild(canvas);
+        contentRoot.appendChild(stage);
+
+        setActiveCanvas(canvas);
+        setMode("off");
+        fitWidthIfMobile();
+        setStatus("Video opened: " + file.name);
+      };
+
+      video.onerror = function () {
+        alert("Could not load video. This format may not be supported by your browser/device.");
+      };
+    }
+
+    async function openPdf(file) {
+      if (!window.pdfjsLib) {
+        alert("PDF.js could not be loaded.");
+        return;
+      }
+
+      clearContent();
+      currentType = "pdf";
+      currentFileName = file.name;
+
+      const data = await file.arrayBuffer();
+      pdfDoc = await pdfjsLib.getDocument({ data }).promise;
+
+      setStatus("Rendering PDF: " + file.name + "...");
+
+      for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+        await renderPdfPage(pageNum);
+      }
+
+      setMode("off");
+      fitWidthIfMobile();
+      setStatus("PDF opened: " + file.name);
+    }
+
+    async function renderPdfPage(pageNum) {
+      const page = await pdfDoc.getPage(pageNum);
+      const viewport = page.getViewport({ scale: pdfBaseScale });
+
+      const pageDiv = document.createElement("div");
+      pageDiv.className = "pdfPage";
+      pageDiv.dataset.page = String(pageNum);
+      pageDiv.style.width = Math.round(viewport.width) + "px";
+      pageDiv.style.height = Math.round(viewport.height) + "px";
+
+      const label = document.createElement("div");
+      label.className = "pdfPageLabel";
+      label.textContent = "Page " + pageNum;
+      pageDiv.appendChild(label);
+
+      const renderCanvas = document.createElement("canvas");
+      renderCanvas.className = "pdfRenderCanvas";
+      renderCanvas.width = Math.round(viewport.width);
+      renderCanvas.height = Math.round(viewport.height);
+      renderCanvas.style.width = Math.round(viewport.width) + "px";
+      renderCanvas.style.height = Math.round(viewport.height) + "px";
+      pageDiv.appendChild(renderCanvas);
+
+      const annotationCanvas = createAnnotationCanvas(viewport.width, viewport.height, "pdf-" + pageNum);
+      pageDiv.appendChild(annotationCanvas);
+
+      contentRoot.appendChild(pageDiv);
+
+      await page.render({
+        canvasContext: renderCanvas.getContext("2d"),
+        viewport
+      }).promise;
+    }
+
+    async function openDocx(file) {
+      if (!window.mammoth) {
+        alert("Mammoth.js is not loaded.");
+        return;
+      }
+
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.convertToHtml({ arrayBuffer });
+
+      const messages = result.messages && result.messages.length
+        ? `<div class="noticeBox"><b>Mammoth messages:</b><pre>${escapeHtml(JSON.stringify(result.messages, null, 2))}</pre></div>`
+        : "";
+
+      createDocumentStage(`
+        <h1>${escapeHtml(file.name)}</h1>
+        ${messages}
+        <div>${result.value}</div>
+      `, file.name);
+
+      setStatus("DOCX opened with Mammoth.js: " + file.name);
+    }
+
+    async function openSpreadsheet(file) {
+      if (!window.XLSX) {
+        alert("SheetJS is not loaded.");
+        return;
+      }
+
+      const ext = extensionOf(file.name);
+      const data = ext === "csv" ? await file.text() : await file.arrayBuffer();
+      const workbook = ext === "csv"
+        ? XLSX.read(data, { type: "string" })
+        : XLSX.read(data, { type: "array" });
+
+      let html = `<h1>${escapeHtml(file.name)}</h1>`;
+
+      workbook.SheetNames.forEach(function (sheetName) {
+        const sheet = workbook.Sheets[sheetName];
+        html += `<h2>${escapeHtml(sheetName)}</h2>`;
+        html += XLSX.utils.sheet_to_html(sheet);
+      });
+
+      createDocumentStage(html, file.name, 1120, 780);
+      setStatus("Spreadsheet opened: " + file.name);
+    }
+
+    async function openTextFile(file, title) {
+      const text = await file.text();
+      createDocumentStage(`
+        <h1>${escapeHtml(file.name)}</h1>
+        <pre>${escapeHtml(text)}</pre>
+      `, file.name);
+      setStatus((title || "Text file") + " opened: " + file.name);
+    }
+
+    async function openRtf(file) {
+      const text = await file.text();
+      const simplified = text
+        .replace(/\\par[d]?/g, "\n")
+        .replace(/\\'[0-9a-fA-F]{2}/g, "")
+        .replace(/\\[a-zA-Z]+\d* ?/g, "")
+        .replace(/[{}]/g, "");
+
+      createDocumentStage(`
+        <h1>${escapeHtml(file.name)}</h1>
+        <div class="noticeBox">RTF is displayed as simplified plain text. Formatting may not be preserved.</div>
+        <pre>${escapeHtml(simplified)}</pre>
+      `, file.name);
+
+      setStatus("RTF opened as simplified text: " + file.name);
+    }
+
+    async function openZip(file) {
+      if (!window.JSZip) {
+        alert("JSZip is not loaded.");
+        return;
+      }
+
+      const zip = await JSZip.loadAsync(await file.arrayBuffer());
+      const files = Object.keys(zip.files).filter(name => !zip.files[name].dir);
+
+      let html = `
+        <h1>${escapeHtml(file.name)}</h1>
+        <div class="noticeBox">ZIP contents are listed below. Click a supported text-like file to preview it.</div>
+        <ul class="fileList">
+      `;
+
+      files.forEach(function (name) {
+        html += `<li data-zip-name="${escapeHtml(name)}">${escapeHtml(name)}</li>`;
+      });
+
+      html += `</ul><div id="zipPreview"><h2>Preview</h2><p>Select a file from the ZIP list.</p></div>`;
+
+      createDocumentStage(html, file.name, 1000, 740);
+
+      document.querySelectorAll("[data-zip-name]").forEach(function (li) {
+        li.addEventListener("click", async function () {
+          const name = li.getAttribute("data-zip-name");
+          const ext = extensionOf(name);
+          const preview = document.getElementById("zipPreview");
+
+          if (!preview) return;
+
+          try {
+            if (["txt", "md", "csv", "json", "xml", "html", "css", "js", "rtf"].includes(ext)) {
+              const text = await zip.files[name].async("text");
+              preview.innerHTML = `<h2>${escapeHtml(name)}</h2><pre>${escapeHtml(text)}</pre>`;
+            } else {
+              preview.innerHTML = `<h2>${escapeHtml(name)}</h2><div class="noticeBox">Preview not available for .${escapeHtml(ext)} inside ZIP.</div>`;
+            }
+          } catch {
+            preview.innerHTML = `<div class="noticeBox">Could not preview this file.</div>`;
+          }
+        });
+      });
+
+      setStatus("ZIP opened: " + file.name);
+    }
+
+    async function openEpub(file) {
+      if (!window.JSZip) {
+        alert("JSZip is not loaded.");
+        return;
+      }
+
+      const zip = await JSZip.loadAsync(await file.arrayBuffer());
+      const names = Object.keys(zip.files);
+
+      const htmlFiles = names
+        .filter(name => /\.(xhtml|html|htm)$/i.test(name))
+        .sort();
+
+      let combined = `<h1>${escapeHtml(file.name)}</h1>`;
+      combined += `<div class="noticeBox">EPUB preview is simplified. Complex layout, fonts, images, DRM, and navigation may not render fully.</div>`;
+
+      const maxFiles = Math.min(htmlFiles.length, 20);
+
+      for (let i = 0; i < maxFiles; i++) {
+        const name = htmlFiles[i];
+
+        try {
+          let text = await zip.files[name].async("text");
+          text = text.replace(/<script[\s\S]*?<\/script>/gi, "");
+          combined += `<hr><h2>${escapeHtml(name)}</h2><div>${text}</div>`;
+        } catch {}
+      }
+
+      if (!htmlFiles.length) {
+        combined += `<div class="noticeBox">No HTML/XHTML content files found in this EPUB.</div>`;
+      }
+
+      createDocumentStage(combined, file.name, 1000, 780);
+      setStatus("EPUB opened: " + file.name);
+    }
+
+    async function openUnsupportedButDetected(file, ext) {
+      const map = {
+        doc: "Legacy DOC files need server-side conversion or a specialized parser. Recommended: convert to DOCX or PDF.",
+        ppt: "Legacy PPT files need server-side conversion or a specialized parser. Recommended: convert to PPTX or PDF.",
+        pptx: "PPTX browser-only rendering is complex. Recommended: export as PDF, or integrate a PPTX-to-HTML library/server converter.",
+        rar: "RAR extraction in-browser requires an additional WASM RAR library and may be large. ZIP is supported directly.",
+        mobi: "MOBI rendering in-browser is limited. Recommended: convert MOBI to EPUB or PDF."
+      };
+
+      createDocumentStage(`
+        <h1>${escapeHtml(file.name)}</h1>
+        <div class="noticeBox">
+          <b>Detected .${escapeHtml(ext)} file.</b><br>
+          ${escapeHtml(map[ext] || "This format is detected but not previewable in this browser-only version.")}
+        </div>
+      `, file.name);
+
+      setStatus("Detected ." + ext + " file: " + file.name);
+    }
+
+    bindButton(loadUrlBtn, loadUrl);
+
+    urlInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        loadUrl();
+      }
+    });
+
+    async function loadUrl() {
+      const raw = urlInput.value.trim();
+
+      if (!raw) {
+        alert("Please paste a URL.");
+        return;
+      }
+
+      let url;
+
+      try {
+        url = new URL(raw);
+      } catch {
+        alert("Invalid URL.");
+        return;
+      }
+
+      try {
+        await openUrl(url.href);
+      } catch (err) {
+        console.error(err);
+        alert("Could not load URL in viewer. Try Open External.");
+      }
+    }
+
+    bindButton(openUrlExternalBtn, function () {
+      const raw = urlInput.value.trim();
+      if (!raw) {
+        alert("Please paste a URL.");
+        return;
+      }
+      openExternal(raw);
+    });
+
+    async function openUrl(url) {
+      const ext = extensionOf(url);
+
+      if (["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(ext)) return openImageFromUrl(url);
+      if (["mp4", "webm", "ogg", "mov"].includes(ext)) return openVideoFromUrl(url);
+      if (ext === "pdf") return openPdfFromUrl(url);
+      if (["txt", "csv", "json", "xml", "html", "htm", "md"].includes(ext)) return openTextFromUrl(url);
+      if (["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(ext)) return openOfficeUrl(url);
+
+      createIframeStage(url, "URL", 1000, 680, `
+        <b>Note:</b> Some websites block embedding in third-party apps.
+        If this frame is blank or blocked, use the Open External button.
+      `);
+
+      setStatus("Loaded URL frame: " + url);
+    }
+
+    async function openImageFromUrl(url) {
+      clearContent();
+      currentType = "image-url";
+      currentFileName = url;
+
+      const img = document.createElement("img");
+      img.crossOrigin = "anonymous";
+      img.alt = url;
+
+      img.onload = function () {
+        const width = img.naturalWidth || 1000;
+        const height = img.naturalHeight || 700;
+
+        const stage = makeStage(width, height, "stage mediaStage");
+        img.width = width;
+        img.height = height;
+        stage.appendChild(img);
+
+        const canvas = createAnnotationCanvas(width, height, "main");
+        stage.appendChild(canvas);
+        contentRoot.appendChild(stage);
+
+        setActiveCanvas(canvas);
+        setMode("off");
+        fitWidthIfMobile();
+        setStatus("Image URL loaded.");
+      };
+
+      img.onerror = function () {
+        alert("Could not load image URL. It may block cross-origin loading.");
+      };
+
+      img.src = url;
+    }
+
+    async function openVideoFromUrl(url) {
+      clearContent();
+      currentType = "video-url";
+      currentFileName = url;
+
+      const video = document.createElement("video");
+      video.controls = true;
+      video.playsInline = true;
+      video.src = url;
+      video.preload = "metadata";
+
+      video.onloadedmetadata = function () {
+        const width = video.videoWidth || 960;
+        const height = video.videoHeight || 540;
+
+        video.width = width;
+        video.height = height;
+
+        const stage = makeStage(width, height, "stage mediaStage");
+        stage.appendChild(video);
+
+        const canvas = createAnnotationCanvas(width, height, "main");
+        stage.appendChild(canvas);
+        contentRoot.appendChild(stage);
+
+        setActiveCanvas(canvas);
+        setMode("off");
+        fitWidthIfMobile();
+        setStatus("Video URL loaded.");
+      };
+
+      video.onerror = function () {
+        alert("Could not load video URL. The server may block direct playback.");
+      };
+    }
+
+    async function openPdfFromUrl(url) {
+      if (!window.pdfjsLib) {
+        alert("PDF.js could not be loaded.");
+        return;
+      }
+
+      clearContent();
+      currentType = "pdf-url";
+      currentFileName = url;
+
+      setStatus("Loading PDF URL...");
+
+      pdfDoc = await pdfjsLib.getDocument({ url }).promise;
+
+      for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+        await renderPdfPage(pageNum);
+      }
+
+      setMode("off");
+      fitWidthIfMobile();
+      setStatus("PDF URL loaded.");
+    }
+
+    async function openTextFromUrl(url) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      const text = await response.text();
+
+      createDocumentStage(`
+        <h1>${escapeHtml(url)}</h1>
+        <pre>${escapeHtml(text)}</pre>
+      `, url);
+
+      setStatus("Text URL loaded.");
+    }
+
+    function openOfficeUrl(url) {
+      const viewerUrl = "https://view.officeapps.live.com/op/embed.aspx?src=" + encodeURIComponent(url);
+
+      createIframeStage(viewerUrl, "Office URL", 1000, 700, `
+        <b>Office URL viewer:</b> This uses Microsoft Office Web Viewer. The file must be publicly accessible online.
+        If blocked, open externally or convert to PDF.
+      `);
+
+      setStatus("Office URL opened with online viewer.");
+    }
+
+    function applyZoom() {
+      if (currentType === "pdf" || currentType === "pdf-url") {
+        let maxWidth = 0;
+        let totalHeight = 0;
+
+        document.querySelectorAll(".pdfPage").forEach(function (page) {
+          page.style.transform = "scale(" + zoom + ")";
+          page.style.transformOrigin = "top center";
+          page.style.marginBottom = 28 + page.offsetHeight * Math.max(0, zoom - 1) + "px";
+
+          maxWidth = Math.max(maxWidth, page.offsetWidth * zoom);
+          totalHeight += page.offsetHeight * zoom + 28;
+        });
+
+        contentRoot.style.minWidth = Math.max(window.innerWidth, maxWidth + 48) + "px";
+        contentRoot.style.minHeight = Math.max(window.innerHeight, totalHeight + 48) + "px";
+      } else {
+        const stage = document.querySelector(".stage");
+
+        if (stage) {
+          stage.style.transform = "scale(" + zoom + ")";
+          stage.style.transformOrigin = "top left";
+
+          const rectWidth = stage.offsetWidth * zoom;
+          const rectHeight = stage.offsetHeight * zoom;
+
+          contentRoot.style.minWidth = Math.max(window.innerWidth, rectWidth + 48) + "px";
+          contentRoot.style.minHeight = Math.max(window.innerHeight, rectHeight + 48) + "px";
+        }
+      }
+
+      updateZoomLabel();
+    }
+
+    bindButton(zoomOutBtn, function () {
+      zoom = Math.max(0.15, zoom - 0.15);
+      applyZoom();
+    });
+
+    bindButton(zoomInBtn, function () {
+      zoom = Math.min(6, zoom + 0.15);
+      applyZoom();
+    });
+
+    bindButton(zoomResetBtn, function () {
+      zoom = 1;
+      resetContentSizing();
+
+      document.querySelectorAll(".pdfPage").forEach(function (page) {
+        page.style.transform = "scale(1)";
+        page.style.marginBottom = "28px";
+      });
+
+      const stage = document.querySelector(".stage");
+      if (stage) stage.style.transform = "scale(1)";
+
+      updateZoomLabel();
+    });
+
+    bindButton(fitWidthBtn, fitWidth);
+
+    function fitWidthIfMobile() {
+      if (window.innerWidth <= 900) setTimeout(fitWidth, 100);
+    }
+
+    function fitWidth() {
+      const available = Math.max(260, workspace.clientWidth - 28);
+      let baseWidth = 0;
+
+      if (currentType === "pdf" || currentType === "pdf-url") {
+        const firstPage = document.querySelector(".pdfPage");
+        if (!firstPage) return;
+        baseWidth = firstPage.offsetWidth;
+      } else {
+        const stage = document.querySelector(".stage");
+        if (!stage) return;
+        baseWidth = stage.offsetWidth;
+      }
+
+      if (!baseWidth) return;
+
+      zoom = Math.max(0.15, Math.min(6, available / baseWidth));
+      applyZoom();
+      workspace.scrollLeft = 0;
+    }
+
+    function getCurrentVisibleCanvas() {
+      if (currentType !== "pdf" && currentType !== "pdf-url") {
+        return document.querySelector(".annotationCanvas");
+      }
+
+      const pages = Array.from(document.querySelectorAll(".pdfPage"));
+      const workspaceRect = workspace.getBoundingClientRect();
+
+      let best = null;
+      let bestOverlap = -Infinity;
+
+      for (const page of pages) {
+        const rect = page.getBoundingClientRect();
+        const overlap = Math.min(rect.bottom, workspaceRect.bottom) - Math.max(rect.top, workspaceRect.top);
+
+        if (overlap > bestOverlap) {
+          bestOverlap = overlap;
+          best = page;
+        }
+      }
+
+      return best ? best.querySelector(".annotationCanvas") : null;
+    }
+
+    bindButton(undoBtn, function () {
+      const canvas = getCurrentVisibleCanvas();
+      if (!canvas) return;
+
+      const store = getStoreForKey(canvas.dataset.key || "main");
+      if (!store.strokes.length) return;
+
+      store.redo.push(store.strokes.pop());
+      redrawCanvas(canvas);
+    });
+
+    bindButton(redoBtn, function () {
+      const canvas = getCurrentVisibleCanvas();
+      if (!canvas) return;
+
+      const store = getStoreForKey(canvas.dataset.key || "main");
+      if (!store.redo.length) return;
+
+      store.strokes.push(store.redo.pop());
+      redrawCanvas(canvas);
+    });
+
+    bindButton(clearViewBtn, function () {
+      const canvas = getCurrentVisibleCanvas();
+      if (!canvas) return;
+      if (!confirm("Clear annotations on the current page/view?")) return;
+
+      const store = getStoreForKey(canvas.dataset.key || "main");
+      store.strokes = [];
+      store.redo = [];
+      redrawCanvas(canvas);
+    });
+
+    bindButton(clearAllBtn, function () {
+      if (!confirm("Clear ALL annotations from this file/document?")) return;
+
+      annotations.main.strokes = [];
+      annotations.main.redo = [];
+
+      for (const key of Object.keys(annotations.pdfPages)) {
+        annotations.pdfPages[key].strokes = [];
+        annotations.pdfPages[key].redo = [];
+      }
+
+      redrawAll();
+    });
+
+    bindButton(saveJsonBtn, function () {
+      const data = {
+        app: "AnnotAI Viewer",
+        shortName: "AnnotAI",
+        version: 9,
+        fileName: currentFileName,
+        fileType: currentType,
+        zoom,
+        annotations
+      };
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      downloadBlob(blob, stripExtension(safeFileName(currentFileName)) + "_annotations.json");
+    });
+
+    jsonInput.addEventListener("change", async function () {
+      const file = jsonInput.files && jsonInput.files[0];
+      if (!file) return;
+
+      try {
+        const data = JSON.parse(await file.text());
+
+        if (data.annotations) {
+          annotations.main = data.annotations.main || annotations.main;
+          annotations.pdfPages = data.annotations.pdfPages || {};
+        } else {
+          annotations.main.strokes = data.strokes || [];
+          annotations.pdfPages = data.pdfAnnotations || {};
+        }
+
+        redrawAll();
+        setStatus("Loaded annotation JSON: " + file.name);
+      } catch (err) {
+        console.error(err);
+        alert("Could not load annotation JSON.");
+      }
+
+      jsonInput.value = "";
+    });
+
+    bindButton(exportPngBtn, function () {
+      const canvas = getCurrentVisibleCanvas();
+
+      if (!canvas) {
+        alert("Open a file first.");
+        return;
+      }
+
+      const out = document.createElement("canvas");
+      out.width = canvas.width;
+      out.height = canvas.height;
+
+      const outCtx = out.getContext("2d");
+
+      let baseElement = null;
+
+      if (currentType === "pdf" || currentType === "pdf-url") {
+        baseElement = canvas.parentElement.querySelector(".pdfRenderCanvas");
+      } else {
+        baseElement = canvas.parentElement.querySelector("img, video");
+      }
+
+      try {
+        if (baseElement) {
+          outCtx.drawImage(baseElement, 0, 0, out.width, out.height);
+        } else {
+          outCtx.fillStyle = "#ffffff";
+          outCtx.fillRect(0, 0, out.width, out.height);
+        }
+      } catch {
+        outCtx.fillStyle = "#ffffff";
+        outCtx.fillRect(0, 0, out.width, out.height);
+      }
+
+      outCtx.drawImage(canvas, 0, 0);
+
+      out.toBlob(function (blob) {
+        if (!blob) {
+          alert("Could not export PNG.");
+          return;
+        }
+
+        downloadBlob(blob, stripExtension(safeFileName(currentFileName)) + "_annotated.png");
+      }, "image/png");
+    });
+
+    function downloadBlob(blob, filename) {
+      const a = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+
+      setTimeout(function () {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 1000);
+    }
+
+    function stripExtension(name) {
+      return String(name || "untitled").replace(/\.[^.]+$/, "");
+    }
+
+    function safeFileName(name) {
+      return String(name || "untitled")
+        .replace(/^https?:\/\//i, "")
+        .replace(/[^a-z0-9._-]+/gi, "_")
+        .slice(0, 80) || "untitled";
+    }
+
+    window.addEventListener("keydown", function (event) {
+      const key = event.key.toLowerCase();
+
+      if ((event.ctrlKey || event.metaKey) && key === "z") {
+        event.preventDefault();
+        undoBtn.click();
+        return;
+      }
+
+      if ((event.ctrlKey || event.metaKey) && key === "y") {
+        event.preventDefault();
+        redoBtn.click();
+        return;
+      }
+
+      if ((event.ctrlKey || event.metaKey) && (key === "=" || key === "+")) {
+        event.preventDefault();
+        zoomInBtn.click();
+        return;
+      }
+
+      if ((event.ctrlKey || event.metaKey) && key === "-") {
+        event.preventDefault();
+        zoomOutBtn.click();
+        return;
+      }
+
+      if ((event.ctrlKey || event.metaKey) && key === "0") {
+        event.preventDefault();
+        zoomResetBtn.click();
+        return;
+      }
+
+      if (event.target && ["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName)) return;
+
+      if (key === "o") setMode("off");
+      if (key === "p") setMode("pen");
+      if (key === "h") setMode("highlighter");
+      if (key === "e") setMode("eraser");
+      if (key === "l") setMode("laser");
+    });
+
+    window.addEventListener("resize", function () {
+      if (currentType && zoom !== 1) applyZoom();
+      const rect = floatingToolbar.getBoundingClientRect();
+      setFloatingToolbarPosition(rect.left, rect.top);
+    });
+
+    document.addEventListener("gesturestart", function (event) {
+      if (mode !== "off") event.preventDefault();
+    }, { passive: false });
+
+    document.addEventListener("touchmove", function (event) {
+      if (mode !== "off" && event.target.classList && event.target.classList.contains("annotationCanvas")) {
+        event.preventDefault();
+      }
+    }, { passive: false });
+
+    function getToolbarPoint(event) {
+      if (event.touches && event.touches.length) return { x: event.touches[0].clientX, y: event.touches[0].clientY };
+      if (event.changedTouches && event.changedTouches.length) return { x: event.changedTouches[0].clientX, y: event.changedTouches[0].clientY };
+      return { x: event.clientX, y: event.clientY };
+    }
+
+    function toolbarIsExpanded() {
+      return floatingToolbar.classList.contains("expanded");
+    }
+
+    function getToolbarSize() {
+      if (toolbarIsExpanded()) {
+        return {
+          width: Math.min(toolbarPanel.offsetWidth || 1120, window.innerWidth - 24),
+          height: Math.min(toolbarPanel.offsetHeight || 420, window.innerHeight - 24)
+        };
+      }
+
+      return {
+        width: toolbarDot.offsetWidth || 56,
+        height: toolbarDot.offsetHeight || 56
+      };
+    }
+
+    function clampFloatingToolbar(x, y) {
+      const margin = 8;
+      const size = getToolbarSize();
+      const maxX = Math.max(margin, window.innerWidth - size.width - margin);
+      const maxY = Math.max(margin, window.innerHeight - size.height - margin);
+
+      return {
+        x: Math.min(Math.max(x, margin), maxX),
+        y: Math.min(Math.max(y, margin), maxY)
+      };
+    }
+
+    function setFloatingToolbarPosition(x, y) {
+      const pos = clampFloatingToolbar(x, y);
+
+      floatingToolbar.style.left = pos.x + "px";
+      floatingToolbar.style.top = pos.y + "px";
+      floatingToolbar.style.right = "auto";
+      floatingToolbar.style.bottom = "auto";
+
+      try {
+        localStorage.setItem("annotAiToolbarPosition", JSON.stringify(pos));
+      } catch {}
+    }
+
+    function restoreFloatingToolbarPosition() {
+      try {
+        const saved = JSON.parse(localStorage.getItem("annotAiToolbarPosition") || "null");
+
+        if (saved && Number.isFinite(saved.x) && Number.isFinite(saved.y)) {
+          setFloatingToolbarPosition(saved.x, saved.y);
+          return;
+        }
+      } catch {}
+
+      setFloatingToolbarPosition(16, 16);
+    }
+
+    function expandFloatingToolbar() {
+      restorePanelSize();
+      floatingToolbar.classList.remove("collapsed");
+      floatingToolbar.classList.add("expanded");
+
+      const rect = floatingToolbar.getBoundingClientRect();
+      setFloatingToolbarPosition(rect.left, rect.top);
+    }
+
+    function collapseFloatingToolbar() {
+      floatingToolbar.classList.remove("expanded");
+      floatingToolbar.classList.add("collapsed");
+
+      const rect = floatingToolbar.getBoundingClientRect();
+      setFloatingToolbarPosition(rect.left, rect.top);
+    }
+
+    function initFloatingToolbar() {
+      if (!floatingToolbar || !toolbarDot || !toolbarPanel || !toolbarHeader) return;
+
+      let dragging = false;
+      let moved = false;
+      let handle = null;
+      let startX = 0;
+      let startY = 0;
+      let startLeft = 0;
+      let startTop = 0;
+
+      function startDrag(event, nextHandle) {
+        if (nextHandle === "header") {
+          const target = event.target;
+          if (target && target.closest && target.closest("button, input, label, select, textarea, a")) return;
+        }
+
+        const p = getToolbarPoint(event);
+        const rect = floatingToolbar.getBoundingClientRect();
+
+        dragging = true;
+        moved = false;
+        handle = nextHandle;
+        startX = p.x;
+        startY = p.y;
+        startLeft = rect.left;
+        startTop = rect.top;
+
+        event.preventDefault();
+        event.stopPropagation();
+      }
+
+      function moveDrag(event) {
+        if (!dragging) return;
+
+        const p = getToolbarPoint(event);
+        const dx = p.x - startX;
+        const dy = p.y - startY;
+
+        if (Math.abs(dx) > 6 || Math.abs(dy) > 6) moved = true;
+
+        setFloatingToolbarPosition(startLeft + dx, startTop + dy);
+
+        event.preventDefault();
+        event.stopPropagation();
+      }
+
+      function endDrag(event) {
+        if (!dragging) return;
+
+        const wasDot = handle === "dot";
+        const wasMoved = moved;
+
+        dragging = false;
+        moved = false;
+        handle = null;
+
+        if (wasDot && !wasMoved) expandFloatingToolbar();
+
+        event.preventDefault();
+        event.stopPropagation();
+      }
+
+      toolbarDot.addEventListener("touchstart", e => startDrag(e, "dot"), { passive: false });
+      toolbarDot.addEventListener("mousedown", e => startDrag(e, "dot"), false);
+
+      toolbarHeader.addEventListener("touchstart", e => startDrag(e, "header"), { passive: false });
+      toolbarHeader.addEventListener("mousedown", e => startDrag(e, "header"), false);
+
+      document.addEventListener("touchmove", moveDrag, { passive: false });
+      document.addEventListener("mousemove", moveDrag, false);
+
+      document.addEventListener("touchend", endDrag, { passive: false });
+      document.addEventListener("mouseup", endDrag, false);
+      document.addEventListener("touchcancel", endDrag, { passive: false });
+
+      toolbarDot.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        expandFloatingToolbar();
+      });
+
+      bindButton(collapseToolbarBtn, collapseFloatingToolbar);
+
+      window.addEventListener("orientationchange", function () {
+        setTimeout(function () {
+          const rect = floatingToolbar.getBoundingClientRect();
+          setFloatingToolbarPosition(rect.left, rect.top);
+        }, 350);
+      });
+
+      restoreFloatingToolbarPosition();
+      restorePanelSize();
+      collapseFloatingToolbar();
+    }
+
+    initFloatingToolbar();
+
+    try {
+      loadSavedLanguage();
+      setMode("off");
+      collapseFloatingToolbar();
+    } catch {}
+
+    updateZoomLabel();
+  </script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("./sw.js", { scope: "./" })
+          .then(function (registration) {
+            console.log("AnnotAI Viewer Service Worker registered:", registration.scope);
+          })
+          .catch(function (err) {
+            console.warn("AnnotAI Viewer Service Worker registration failed:", err);
+          });
+      });
+    }
+  </script>
+
+</body>
+</html>
