@@ -579,7 +579,7 @@ App icons
 Offline caching
 When installed as a PWA, users can launch it like a regular app from supported browsers and devices.
 
-Suggested Repository Structure
+Repository Structure
 annotai-viewer/
 ├── index.html
 ├── manifest.json
