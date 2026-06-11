@@ -7,7 +7,6 @@ AnnotAI Viewer is designed as a lightweight web app that can run directly in the
 
 Overview
 AnnotAI Viewer combines several useful functions into one browser-based workspace:
-
 Document viewer
 Media viewer
 PDF annotator
@@ -27,7 +26,6 @@ AnnotAI Viewer includes a multilingual interface designed for international user
 Users can change the interface language from the Settings menu. The selected language is saved locally, so the app can remember the preferred language across sessions.
 
 The app supports common global languages, including:
-
 English
 Chinese
 Arabic
@@ -45,6 +43,7 @@ Spanish
 Turkish
 Urdu
 Vietnamese
+
 The interface dynamically updates labels, buttons, status messages, toolbar text, and help content. Right-to-left language support is also included for languages such as Arabic and Urdu.
 
 This makes AnnotAI Viewer suitable for multilingual classrooms, international teams, cross-border research, online teaching, and global content review.
@@ -53,7 +52,6 @@ This makes AnnotAI Viewer suitable for multilingual classrooms, international te
 AnnotAI Viewer runs in a web browser. No traditional desktop installation is required.
 
 Users can open many common file types directly in the app, including:
-
 Images
 PNG
 JPG
@@ -85,7 +83,6 @@ Some formats, such as DOC, PPT, PPTX, RAR, and MOBI, can be detected but may req
 AnnotAI Viewer uses PDF rendering technology to display PDF pages inside the browser.
 
 Users can:
-
 Open PDF files
 Scroll through pages
 Annotate individual pages
@@ -103,7 +100,6 @@ AnnotAI Viewer supports document and spreadsheet preview using browser-side libr
 DOCX files can be converted to readable HTML for browser display. Spreadsheet files can be shown as HTML tables.
 
 Supported document workflow examples include:
-
 Reviewing DOCX reports
 Reading text files
 Opening CSV data
@@ -116,7 +112,6 @@ This allows users to quickly inspect files and annotate them without opening sep
 Users can paste a URL into the app and attempt to load it inside the viewer.
 
 Supported URL use cases include:
-
 Direct image URLs
 Direct video URLs
 Direct PDF URLs
@@ -134,7 +129,6 @@ OFF / Interact Mode
 This mode allows users to interact with the content normally.
 
 Use this mode to:
-
 Scroll documents
 Use video controls
 Click embedded pages
@@ -145,7 +139,6 @@ Pen Tool
 The Pen tool is used for freehand drawing.
 
 Good for:
-
 Marking key points
 Writing quick notes
 Drawing arrows
@@ -155,7 +148,6 @@ Highlighter Tool
 The Highlighter tool creates semi-transparent strokes.
 
 Good for:
-
 Highlighting text
 Emphasizing spreadsheet cells
 Marking important document areas
@@ -164,7 +156,6 @@ Eraser Tool
 The Eraser removes annotation strokes.
 
 Good for:
-
 Correcting mistakes
 Cleaning up a page
 Removing old markings
@@ -173,7 +164,6 @@ Laser Pointer
 The Laser tool works as a temporary pointer for presentation.
 
 Good for:
-
 Teaching live classes
 Presenting documents
 Pointing at chart areas
@@ -185,7 +175,6 @@ Laser marks are temporary and are not saved as permanent annotations.
 AnnotAI Viewer includes a floating toolbar panel named Annotation AI Tools.
 
 The panel can be:
-
 Opened from a floating dot
 Collapsed when not needed
 Dragged around the screen
@@ -201,11 +190,10 @@ This flexible panel design helps users keep the workspace clean while still havi
 AnnotAI Viewer includes dropdown launchers for popular AI tools.
 
 The app provides separate launchers for:
-
 AI Tools EN
 AI Tools CN
-Examples of English/global AI tools include:
 
+Examples of English/global AI tools include:
 ChatGPT
 Claude
 Gemini
@@ -216,8 +204,8 @@ Grok
 Poe
 Mistral Le Chat
 Meta AI
-Examples of Chinese AI tools include:
 
+Examples of Chinese AI tools include:
 DeepSeek
 Kimi
 Qwen / Tongyi Qianwen
@@ -246,11 +234,10 @@ The selected tool opens in a new browser tab, preserving the current AnnotAI Vie
 AnnotAI Viewer also includes dropdown launchers for English and Chinese social media platforms.
 
 The app provides:
-
 Media EN
 Media CN
-Examples of English/global platforms include:
 
+Examples of English/global platforms include:
 YouTube
 Facebook
 Instagram
@@ -261,8 +248,8 @@ Reddit
 Snapchat
 Pinterest
 WhatsApp
-Examples of Chinese platforms include:
 
+Examples of Chinese platforms include:
 WeChat
 Douyin
 Xiaohongshu / RedNote
@@ -273,8 +260,8 @@ QQ
 Zhihu
 Baidu Tieba
 Toutiao
-These launchers are useful for:
 
+These launchers are useful for:
 Content research
 Social media review
 Teaching with online examples
@@ -282,27 +269,24 @@ Media comparison
 Marketing research
 Creator workflows
 Cross-platform content planning
+
 10. Zoom and Fit Controls
 AnnotAI Viewer includes zoom controls to support detailed review.
-
 Users can:
-
 Zoom in
 Zoom out
 Reset zoom
 Fit content to width
 This is useful for:
-
 Reading small text
 Inspecting images
 Reviewing charts
 Presenting on different screen sizes
 Using the app on tablets or mobile devices
+
 11. Save, Load, and Export
 AnnotAI Viewer supports annotation persistence and export.
-
 Users can:
-
 Save annotations as JSON
 Load annotation JSON later
 Export the current annotated view as PNG where possible
@@ -315,9 +299,7 @@ AnnotAI Viewer is designed for a wide range of users.
 
 Teachers and Educators
 Teachers can use AnnotAI Viewer to present and annotate learning materials during lessons.
-
 Useful for:
-
 Marking PDFs during class
 Highlighting textbook pages
 Drawing explanations on images
@@ -325,19 +307,18 @@ Using laser pointer mode during teaching
 Opening online learning resources
 Launching AI tools for lesson support
 Teaching multilingual students
-Example use cases:
 
+Example use cases:
 Annotating a worksheet live
 Explaining a diagram
 Highlighting grammar or vocabulary
 Reviewing student submissions
 Presenting lecture notes
 Opening YouTube or Bilibili educational videos
+
 Students and Learners
 Students can use AnnotAI Viewer for self-study and note-taking.
-
 Useful for:
-
 Reading PDFs
 Highlighting key points
 Annotating lecture slides
@@ -345,18 +326,17 @@ Reviewing documents
 Opening eBooks
 Using AI tools for explanations
 Comparing multilingual content
-Example use cases:
 
+Example use cases:
 Highlighting exam notes
 Annotating research papers
 Studying EPUB textbooks
 Asking AI to explain difficult concepts
 Reviewing class materials in another language
+
 Researchers and Academics
 Researchers can use AnnotAI Viewer to review papers, datasets, and references.
-
 Useful for:
-
 Reading academic PDFs
 Marking important sections
 Reviewing data tables
@@ -364,19 +344,18 @@ Opening research URLs
 Using AI for summarization
 Launching search and AI tools quickly
 Comparing sources across languages
-Example use cases:
 
+Example use cases:
 Annotating journal articles
 Highlighting citations
 Reviewing experimental data
 Summarizing papers with AI
 Opening related references
 Preparing research presentations
+
 Business Professionals
 Business users can use AnnotAI Viewer for document review, presentation, and meetings.
-
 Useful for:
-
 Reviewing reports
 Annotating proposals
 Presenting spreadsheets
@@ -384,104 +363,100 @@ Marking charts
 Reviewing contracts
 Opening business URLs
 Using AI tools for summaries and writing
-Example use cases:
 
+Example use cases:
 Marking sales reports
 Presenting financial charts
 Reviewing project documents
 Annotating meeting materials
 Summarizing long documents with AI
 Preparing client presentations
+
 Designers and Creative Teams
 Designers and creative teams can use AnnotAI Viewer for visual review.
-
 Useful for:
-
 Reviewing images
 Drawing feedback on screenshots
 Annotating design drafts
 Presenting visual concepts
 Reviewing media files
 Sharing marked-up PNG exports
-Example use cases:
 
+Example use cases:
 Marking design changes
 Reviewing UI screenshots
 Highlighting layout issues
 Giving visual feedback to teammates
 Presenting visual ideas during meetings
+
 Content Creators and Social Media Managers
 Content creators can benefit from the media and social platform launchers.
-
 Useful for:
-
 Reviewing media files
 Comparing social platforms
 Opening YouTube, TikTok, Bilibili, Douyin, Xiaohongshu and more
 Planning multilingual content
 Annotating screenshots or video frames
 Using AI tools for captions, scripts, and summaries
-Example use cases:
 
+Example use cases:
 Reviewing a video draft
 Marking thumbnail ideas
 Comparing platform content
 Planning posts for English and Chinese audiences
 Using AI to generate descriptions or scripts
+
 Translators and Multilingual Teams
 The multilingual interface makes AnnotAI Viewer useful for translation and international collaboration.
-
 Useful for:
-
 Reviewing multilingual documents
 Switching interface languages
 Annotating translated content
 Comparing English and Chinese resources
 Using AI translation tools
 Supporting international users
-Example use cases:
 
+Example use cases:
 Reviewing bilingual PDFs
 Marking translation issues
 Explaining document changes to global teams
 Launching AI tools for translation support
+
 Trainers, Coaches, and Presenters
 Trainers and presenters can use AnnotAI Viewer as a visual presentation companion.
-
 Useful for:
-
 Presenting documents
 Using laser pointer mode
 Highlighting important points
 Annotating slides exported as PDF
 Opening online resources
 Keeping tools in a movable floating panel
-Example use cases:
 
+Example use cases:
 Training sessions
 Online workshops
 Product demonstrations
 Coaching calls
 Technical walkthroughs
 Conference presentations
+
 Developers and Technical Reviewers
 Developers can use AnnotAI Viewer to review technical documents, screenshots, and files.
-
 Useful for:
-
 Annotating UI screenshots
 Reviewing documentation
 Opening JSON, CSV, TXT, or code-like files
 Launching AI coding assistants
 Reviewing architecture diagrams
 Marking bugs visually
-Example use cases:
 
+Example use cases:
 Reviewing API documentation
 Marking UI bugs
 Annotating logs or CSV files
 Explaining code flow using screenshots
 Opening AI tools for debugging support
+
 Typical Use Cases
 Classroom Teaching
 A teacher opens a PDF worksheet, uses the highlighter to mark key points, switches to laser pointer mode during explanation, then opens an AI tool to generate extra practice questions.
@@ -503,10 +478,8 @@ Floating Dot
 When the app starts, the toolbar may appear as a small floating dot.
 
 Click or tap the dot to expand the tool panel.
-
 Annotation AI Tools Panel
 The expanded panel contains all main tools:
-
 Open File
 URL input
 Load URL
@@ -525,16 +498,16 @@ Clear annotations
 Save / Load JSON
 Export PNG
 Panel Resizing
-The panel can be adjusted in several ways:
 
+The panel can be adjusted in several ways:
 Drag the panel header to move it
 Use the resize handle to resize it
 Use Wider / Narrower buttons
 Use Taller / Shorter buttons
 Scroll inside the panel if tools are hidden
+
 Keyboard Shortcuts
 AnnotAI Viewer includes several shortcuts for faster use.
-
 Shortcut	Action
 O	OFF / Interact mode
 P	Pen tool
@@ -546,11 +519,10 @@ Ctrl / Cmd + Y	Redo
 Ctrl / Cmd + +	Zoom in
 Ctrl / Cmd + -	Zoom out
 Ctrl / Cmd + 0	Reset zoom
+
 Browser and Platform Notes
 AnnotAI Viewer is designed to work in modern browsers.
-
 Recommended browsers:
-
 Google Chrome
 Microsoft Edge
 Mozilla Firefox
@@ -592,7 +564,6 @@ Installation and Deployment
 AnnotAI Viewer can be used as a standalone HTML web app.
 
 It can also be hosted on static hosting services such as:
-
 GitHub Pages
 Gitee Pages
 Netlify
@@ -600,8 +571,8 @@ Vercel
 Cloudflare Pages
 Firebase Hosting
 AWS S3 static hosting
-The app can also be configured as a Progressive Web App with:
 
+The app can also be configured as a Progressive Web App with:
 manifest.json
 sw.js
 App icons
@@ -609,7 +580,6 @@ Offline caching
 When installed as a PWA, users can launch it like a regular app from supported browsers and devices.
 
 Suggested Repository Structure
-Copy
 annotai-viewer/
 ├── index.html
 ├── manifest.json
@@ -618,8 +588,8 @@ annotai-viewer/
 │   ├── icon-192.png
 │   └── icon-512.png
 └── README.md
+
 Example Manifest Information
-Copy
 {
   "name": "AnnotAI Viewer",
   "short_name": "AnnotAI",
@@ -629,9 +599,9 @@ Copy
   "background_color": "#111827",
   "theme_color": "#2563eb"
 }
+
 Why Use AnnotAI Viewer?
 AnnotAI Viewer is useful because it brings together tools that are usually spread across different apps:
-
 File viewing
 PDF reading
 Image and video review
@@ -646,7 +616,6 @@ It is especially helpful when users need to explain, review, teach, compare, ann
 
 Future Improvement Ideas
 Possible future enhancements include:
-
 Full translation of all help content into more languages
 More file format support
 PPTX rendering
