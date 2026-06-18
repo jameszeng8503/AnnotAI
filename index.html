@@ -644,7 +644,7 @@
           <button id="panelWiderBtn" class="resizeButton" type="button">Wider</button>
           <button id="panelShorterBtn" class="resizeButton" type="button">Shorter</button>
           <button id="panelTallerBtn" class="resizeButton" type="button">Taller</button>
-          <button id="collapseToolbarBtn" type="button">Collapse</button>
+          <button id="collapseToolbarBtn" type="button">Minimize</button>
         </div>
       </div>
 
@@ -655,7 +655,16 @@
             <input
               id="fileInput"
               type="file"
-              accept="image/*,video/*,.pdf,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.rtf,.csv,.zip,.rar,.epub,.mobi"
+              accept=".pdf,application/pdf,.html,.htm,text/html,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.rtf,.csv,.zip,.rar,.epub,.mobi,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain,text/csv,application/zip,application/epub+zip"
+            />
+          </label>
+
+          <label id="openMediaLabel" class="fileButton">
+            Open Media
+            <input
+              id="mediaInput"
+              type="file"
+              accept="image/*,video/*,.png,.jpg,.jpeg,.gif,.webp,.svg,.mp4,.webm,.ogg,.mov"
             />
           </label>
         </div>
@@ -665,7 +674,7 @@
           <input id="urlInput" class="urlInput" type="url" placeholder="Paste document, media, or social URL" />
           <button id="loadUrlBtn" type="button">Load URL</button>
           <button id="openUrlExternalBtn" type="button">Open External</button>
-          <button id="settingsBtn" type="button">Settings</button>
+          <button id="settingsBtn" type="button">Language</button>
           <button id="helpBtn" type="button">Help</button>
         </div>
 
@@ -693,7 +702,7 @@
         </div>
 
         <div class="group launcherGroup">
-          <span id="launcherLabel" class="small">Launch</span>
+          <span id="launcherLabel" class="small">AI / Media Launchers</span>
 
           <select id="aiEnSelect" class="toolSelect" aria-label="AI Tools EN">
             <option value="">AI Tools (EN)</option>
@@ -768,10 +777,10 @@
           <h2 id="placeholderTitle">AnnotAI Viewer</h2>
           <p id="placeholderIntro">A browser-based viewer, annotator, presenter, and launcher for documents, media, URLs, AI tools, and social platforms.</p>
           <ul>
-            <li id="placeholderFiles">Open images, videos, PDFs, DOCX, spreadsheets, text files, ZIP archives, EPUB eBooks, or paste a URL.</li>
+            <li id="placeholderFiles">Open PDFs, interactive HTML/HTM files, DOCX, spreadsheets, text files, ZIP archives, EPUB eBooks, images, videos, or paste a URL.</li>
             <li id="placeholderInteract"><b>OFF / Interact</b> mode lets you scroll, use media controls, interact with embedded content, and move around zoomed documents.</li>
             <li id="placeholderAnnotate">Use <b>Pen</b>, <b>Highlighter</b>, <b>Erase</b>, or <b>Laser</b> to annotate, teach, review, or present.</li>
-            <li id="placeholderLaunch">Use dropdown launchers for English/Chinese AI tools and English/Chinese social media platforms.</li>
+            <li id="placeholderLaunch">Use dropdown launchers for AI tools and social media platforms.</li>
             <li id="placeholderPanel">The floating panel can be moved, resized, widened, narrowed, made taller/shorter, and scrolled to reveal all tools.</li>
           </ul>
         </div>
@@ -799,6 +808,7 @@
     const $ = (id) => document.getElementById(id);
 
     const fileInput = $("fileInput");
+    const mediaInput = $("mediaInput");
     const jsonInput = $("jsonInput");
     const workspace = $("workspace");
     const contentRoot = $("contentRoot");
@@ -806,6 +816,7 @@
 
     const toolbarTitle = $("toolbarTitle");
     const openFileLabel = $("openFileLabel");
+    const openMediaLabel = $("openMediaLabel");
     const loadJsonLabel = $("loadJsonLabel");
 
     const helpBtn = $("helpBtn");
@@ -953,15 +964,16 @@
       en: {
         appTitle: "AnnotAI Viewer",
         toolbarTitle: "Annotation AI Tools",
-        collapse: "Collapse",
+        collapse: "Minimize",
         openFile: "Open File",
+        openMedia: "Open Media",
         help: "Help",
-        settings: "Settings",
+        settings: "Language",
         language: "Language",
         url: "URL",
         loadUrl: "Load URL",
         openExternal: "Open External",
-        launcher: "Launch",
+        launcher: "AI / Media Launchers",
         open: "Open",
         aiEn: "AI Tools (EN)",
         aiCn: "AI Tools (CN)",
@@ -997,10 +1009,10 @@
         statusEraser: "Eraser mode enabled.",
         statusLaser: "Laser pointer enabled.",
         placeholderIntro: "A browser-based viewer, annotator, presenter, and launcher for documents, media, URLs, AI tools, and social platforms.",
-        placeholderFiles: "Open images, videos, PDFs, DOCX, spreadsheets, text files, ZIP archives, EPUB eBooks, or paste a URL.",
+        placeholderFiles: "Open PDFs, interactive HTML/HTM files, DOCX, spreadsheets, text files, ZIP archives, EPUB eBooks, images, videos, or paste a URL.",
         placeholderInteract: "<b>OFF / Interact</b> mode lets you scroll, use media controls, interact with embedded content, and move around zoomed documents.",
         placeholderAnnotate: "Use <b>Pen</b>, <b>Highlighter</b>, <b>Erase</b>, or <b>Laser</b> to annotate, teach, review, or present.",
-        placeholderLaunch: "Use dropdown launchers for English/Chinese AI tools and English/Chinese social media platforms.",
+        placeholderLaunch: "Use dropdown launchers for AI tools and social media platforms.",
         placeholderPanel: "The floating panel can be moved, resized, widened, narrowed, made taller/shorter, and scrolled to reveal all tools.",
         selectToolAlert: "Please select an item first.",
         openedExternal: "Opened in a new tab. Keep this viewer tab open.",
@@ -1013,7 +1025,10 @@
           <h3>Toolbar layout</h3>
           <ul>
             <li>The title of the panel is <b>Annotation AI Tools</b>.</li>
-            <li><b>Settings</b> and <b>Help</b> are beside the URL controls, to the right of <b>Open External</b>.</li>
+            <li><b>Language</b> and <b>Help</b> are beside the URL controls, to the right of <b>Open External</b>.</li>
+            <li>Use <b>Open File</b> for PDFs, HTML/HTM, DOCX, spreadsheets, text, ZIP, EPUB, and other document files.</li>
+            <li>Use <b>Open Media</b> for images and videos. This improves file picker behavior on many Android devices.</li>
+            <li>The AI Tools and Media launchers are placed near the bottom of the toolbar, below the presentation, zoom, annotation, save, load, and export controls.</li>
             <li>The panel can be dragged by its header.</li>
             <li>The expanded panel can be resized horizontally and vertically using the browser resize handle at its bottom-right corner.</li>
             <li>You can also use <b>Wider</b>, <b>Narrower</b>, <b>Taller</b>, and <b>Shorter</b> to adjust the panel.</li>
@@ -1023,6 +1038,7 @@
           <h3>Main workflow</h3>
           <ol>
             <li>Open a local file, paste a URL, or choose a service from one of the launch dropdowns.</li>
+            <li>For local interactive modelling, simulation, or animation pages, open <b>.html</b> or <b>.htm</b> files with <b>Open File</b>.</li>
             <li>Use <b>OFF / Interact</b> mode when you want to scroll, play videos, use iframe controls, or interact with embedded content.</li>
             <li>Use <b>Pen</b>, <b>Highlighter</b>, <b>Erase</b>, or <b>Laser</b> when you want to annotate or present.</li>
             <li>Save annotations as JSON if you want to reload them later.</li>
@@ -1037,7 +1053,8 @@
             <tr><td>PDF</td><td>PDF</td><td>PDF.js</td></tr>
             <tr><td>Word</td><td>DOCX</td><td>Mammoth.js conversion to HTML</td></tr>
             <tr><td>Spreadsheets</td><td>XLS, XLSX, CSV</td><td>SheetJS conversion to HTML tables</td></tr>
-            <tr><td>Text</td><td>TXT, RTF</td><td>Plain/simplified text display</td></tr>
+            <tr><td>HTML</td><td>HTML, HTM</td><td>Interactive sandboxed iframe viewer with scripts enabled for trusted local simulations and animations</td></tr>
+                <tr><td>Text</td><td>TXT, RTF</td><td>Plain/simplified text display</td></tr>
             <tr><td>Compressed</td><td>ZIP</td><td>JSZip listing and text preview</td></tr>
             <tr><td>eBook</td><td>EPUB</td><td>JSZip simplified HTML extraction</td></tr>
             <tr><td>Detected only</td><td>DOC, PPT, PPTX, RAR, MOBI</td><td>Notice shown; conversion to PDF/DOCX/EPUB recommended</td></tr>
@@ -1066,6 +1083,23 @@
             <tr><td>Ctrl/⌘ + 0</td><td>Reset zoom</td></tr>
           </table>
 
+          <h3>Android file picker note</h3>
+          <ul>
+            <li>Use <b>Open File</b> for PDF, HTML, DOCX, spreadsheets, text, ZIP, EPUB, and similar files.</li>
+            <li>Use <b>Open Media</b> for images and videos.</li>
+            <li>Some Android devices show only Photo Library or Camera when image/video types are mixed into one file picker.</li>
+            <li>Separating Open File and Open Media improves compatibility across more Android phones, tablets, brands, and browsers.</li>
+            <li>For best results, use the latest Chrome, Edge, or Samsung Internet browser.</li>
+          </ul>
+
+          <h3>Interactive HTML/HTM files</h3>
+          <ul>
+            <li>Local <b>.html</b> and <b>.htm</b> files can be opened directly with <b>Open File</b>.</li>
+            <li>Interactive JavaScript, modelling tools, simulations, animations, forms, and canvas/WebGL content are allowed for trusted local files.</li>
+            <li>Only open HTML/HTM files from sources you trust.</li>
+            <li>Zoom, Fit Width, annotation tools, and laser pointer can be used with opened HTML/HTM content.</li>
+          </ul>
+
           <h3>Important limitations</h3>
           <ul>
             <li>Browser security prevents drawing over other apps, other tabs, or system windows.</li>
@@ -1078,15 +1112,16 @@
       zh: {
         appTitle: "AnnotAI 查看器",
         toolbarTitle: "Annotation AI Tools",
-        collapse: "收起",
+        collapse: "最小化",
         openFile: "打开文件",
+        openMedia: "打开媒体",
         help: "帮助",
-        settings: "设置",
+        settings: "语言",
         language: "语言",
         url: "网址",
         loadUrl: "载入网址",
         openExternal: "外部打开",
-        launcher: "启动",
+        launcher: "AI / 媒体启动器",
         open: "打开",
         aiEn: "英文 AI 工具",
         aiCn: "中文 AI 工具",
@@ -1122,7 +1157,7 @@
         statusEraser: "已启用橡皮擦模式。",
         statusLaser: "已启用激光笔。",
         placeholderIntro: "一个基于浏览器的查看器、标注工具、演示工具、网址载入器，以及 AI 工具和社交平台启动器。",
-        placeholderFiles: "可打开图片、视频、PDF、DOCX、电子表格、文本文件、ZIP 压缩包、EPUB 电子书，或粘贴网址。",
+        placeholderFiles: "可打开 PDF、交互式 HTML/HTM 文件、DOCX、电子表格、文本文件、ZIP 压缩包、EPUB 电子书、图片、视频，或粘贴网址。",
         placeholderInteract: "<b>关闭 / 交互</b>模式可用于滚动、使用媒体控件、与嵌入内容交互，以及移动缩放后的文档。",
         placeholderAnnotate: "使用<b>画笔</b>、<b>荧光笔</b>、<b>橡皮擦</b>或<b>激光笔</b>进行标注、教学、审阅或演示。",
         placeholderLaunch: "使用下拉启动器打开英文/中文 AI 工具，以及英文/中文社交媒体平台。",
@@ -1138,7 +1173,10 @@
           <h3>工具栏布局</h3>
           <ul>
             <li>面板标题为 <b>Annotation AI Tools</b>。</li>
-            <li><b>设置</b>和<b>帮助</b>位于网址控制区，紧跟在<b>外部打开</b>按钮右侧。</li>
+            <li><b>语言</b>和<b>帮助</b>位于网址控制区，紧跟在<b>外部打开</b>按钮右侧。</li>
+            <li>使用<b>打开文件</b>打开 PDF、HTML/HTM、DOCX、电子表格、文本、ZIP、EPUB 等文件。</li>
+            <li>使用<b>打开媒体</b>打开图片和视频，这可以改善许多 Android 设备上的文件选择器行为。</li>
+            <li>AI 工具和媒体启动器位于工具栏底部，在演示、缩放、标注、保存、载入和导出功能之后。</li>
             <li>可以通过面板顶部标题栏拖动整个面板。</li>
             <li>展开后的面板可通过右下角调整大小控件进行横向和纵向缩放。</li>
             <li>也可以使用<b>变宽</b>、<b>变窄</b>、<b>变高</b>和<b>变矮</b>按钮调整面板。</li>
@@ -1148,6 +1186,7 @@
           <h3>基本使用流程</h3>
           <ol>
             <li>打开本地文件、粘贴网址，或从下拉列表选择一个平台。</li>
+            <li>如需打开本地交互式建模、仿真或动画页面，请使用<b>打开文件</b>打开 <b>.html</b> 或 <b>.htm</b> 文件。</li>
             <li>需要滚动、播放视频、使用嵌入网页控件或与内容交互时，请使用<b>关闭 / 交互</b>模式。</li>
             <li>需要标注或演示时，请使用<b>画笔</b>、<b>荧光笔</b>、<b>橡皮擦</b>或<b>激光笔</b>。</li>
             <li>如需以后继续使用标注，可将标注保存为 JSON。</li>
@@ -1162,7 +1201,8 @@
             <tr><td>PDF</td><td>PDF</td><td>PDF.js 渲染</td></tr>
             <tr><td>Word</td><td>DOCX</td><td>Mammoth.js 转换为 HTML</td></tr>
             <tr><td>电子表格</td><td>XLS、XLSX、CSV</td><td>SheetJS 转换为 HTML 表格</td></tr>
-            <tr><td>文本</td><td>TXT、RTF</td><td>纯文本/简化文本显示</td></tr>
+            <tr><td>HTML</td><td>HTML、HTM</td><td>支持交互的沙盒 iframe 查看器；对可信本地仿真和动画文件启用脚本</td></tr>
+                <tr><td>文本</td><td>TXT、RTF</td><td>纯文本/简化文本显示</td></tr>
             <tr><td>压缩包</td><td>ZIP</td><td>JSZip 列出内容并预览文本类文件</td></tr>
             <tr><td>电子书</td><td>EPUB</td><td>JSZip 简化提取 HTML 内容</td></tr>
             <tr><td>仅检测</td><td>DOC、PPT、PPTX、RAR、MOBI</td><td>显示提示；建议转换为 PDF、DOCX 或 EPUB</td></tr>
@@ -1174,6 +1214,23 @@
             <li><b>中文 AI 工具：</b>DeepSeek、Kimi、通义千问、文心一言、豆包、智谱清言、讯飞星火、腾讯元宝、海螺 AI、阶跃星辰/跃问。</li>
             <li><b>英文媒体：</b>Facebook、YouTube、Instagram、TikTok、X/Twitter、LinkedIn、Reddit、Snapchat、Pinterest、WhatsApp。</li>
             <li><b>中文媒体：</b>微信、抖音、小红书、微博、哔哩哔哩、快手、QQ、知乎、百度贴吧、今日头条。</li>
+          </ul>
+
+          <h3>Android 文件选择器说明</h3>
+          <ul>
+            <li>使用<b>打开文件</b>打开 PDF、HTML、DOCX、电子表格、文本、ZIP、EPUB 等文件。</li>
+            <li>使用<b>打开媒体</b>打开图片和视频。</li>
+            <li>某些 Android 设备在图片/视频类型和普通文件类型混在同一个选择器中时，只显示相册或相机。</li>
+            <li>分离“打开文件”和“打开媒体”可以提升更多 Android 手机、平板、品牌和浏览器的兼容性。</li>
+            <li>建议使用最新版 Chrome、Edge 或 Samsung Internet 浏览器。</li>
+          </ul>
+
+          <h3>交互式 HTML/HTM 文件</h3>
+          <ul>
+            <li>可以使用<b>打开文件</b>直接打开本地 <b>.html</b> 和 <b>.htm</b> 文件。</li>
+            <li>对可信本地文件，允许交互式 JavaScript、建模工具、仿真、动画、表单以及 canvas/WebGL 内容运行。</li>
+            <li>请只打开来自可信来源的 HTML/HTM 文件。</li>
+            <li>打开的 HTML/HTM 内容可以使用缩放、适应宽度、标注工具和激光笔。</li>
           </ul>
 
           <h3>重要限制</h3>
@@ -1311,6 +1368,7 @@
       setText(panelTallerBtn, t("taller"));
 
       setLabelText(openFileLabel, t("openFile"));
+      setLabelText(openMediaLabel, t("openMedia"));
       setText(helpBtn, t("help"));
       setText(settingsBtn, t("settings"));
       setText(languageLabel, t("language"));
@@ -1362,7 +1420,25 @@
       setText(placeholderLaunch, t("placeholderLaunch"));
       setText(placeholderPanel, t("placeholderPanel"));
 
+      moveLaunchersToBottom();
+
       if (!currentType) setStatus(t("statusReady"));
+    }
+
+
+    function moveLaunchersToBottom() {
+      const toolbar = document.getElementById("toolbar");
+      const launcherGroup = toolbar ? toolbar.querySelector(".launcherGroup") : null;
+      const status = document.getElementById("status");
+
+      if (!toolbar || !launcherGroup || !status) return;
+
+      // Move launchers directly before the status message.
+      // This makes the launchers appear after annotation, presentation,
+      // zoom, undo/redo, clear, save/load, and export controls.
+      if (launcherGroup.nextElementSibling !== status) {
+        toolbar.insertBefore(launcherGroup, status);
+      }
     }
 
     function loadSavedLanguage() {
@@ -1881,14 +1957,46 @@
       fileInput.value = "";
     });
 
+    mediaInput.addEventListener("change", async function () {
+      const file = mediaInput.files && mediaInput.files[0];
+      if (!file) return;
+
+      currentFileName = file.name;
+
+      try {
+        const type = file.type || "";
+        const ext = extensionOf(file.name || "");
+
+        if (type.startsWith("image/") || ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(ext)) {
+          await openImage(file);
+        } else if (type.startsWith("video/") || ["mp4", "webm", "ogg", "mov"].includes(ext)) {
+          await openVideo(file);
+        } else {
+          await openLocalFile(file);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Could not open this media file: " + err.message);
+      }
+
+      mediaInput.value = "";
+    });
+
     async function openLocalFile(file) {
       const name = file.name || "";
       const ext = extensionOf(name);
       const type = file.type || "";
 
+      // Some browsers may still pass media files through this input.
       if (type.startsWith("image/")) return openImage(file);
       if (type.startsWith("video/")) return openVideo(file);
+
       if (type === "application/pdf" || ext === "pdf") return openPdf(file);
+
+      // Local HTML / HTM support with interactive scripts and animations enabled.
+      if (ext === "html" || ext === "htm" || type === "text/html") {
+        return openHtmlFile(file);
+      }
 
       if (ext === "docx") return openDocx(file);
       if (["xlsx", "xls", "csv"].includes(ext)) return openSpreadsheet(file);
@@ -2035,6 +2143,202 @@
         canvasContext: renderCanvas.getContext("2d"),
         viewport
       }).promise;
+    }
+
+    async function openHtmlFile(file) {
+      const rawHtml = await file.text();
+
+      clearContent();
+      currentType = "html";
+      currentFileName = file.name;
+
+      const width = 1000;
+      const height = 740;
+
+      const stage = makeStage(width, height, "stage");
+      const surface = document.createElement("div");
+
+      surface.className = "docSurface";
+      surface.style.width = width + "px";
+      surface.style.height = height + "px";
+      surface.style.padding = "0";
+      surface.style.overflow = "hidden";
+      surface.style.background = "#ffffff";
+      surface.style.color = "#111827";
+
+      const iframe = document.createElement("iframe");
+      iframe.title = file.name || "HTML file";
+      iframe.width = String(width);
+      iframe.height = String(height);
+      iframe.style.border = "0";
+      iframe.style.width = "100%";
+      iframe.style.height = "100%";
+
+      // Interactive local HTML/HTM support:
+      // allow-scripts enables simulations, modelling tools, animations, and JavaScript.
+      // allow-same-origin helps many local interactive pages work correctly inside srcdoc.
+      // Only open HTML files that you trust.
+      iframe.setAttribute(
+        "sandbox",
+        "allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-pointer-lock"
+      );
+      iframe.allow = "fullscreen; autoplay; clipboard-read; clipboard-write; encrypted-media; gyroscope; accelerometer; xr-spatial-tracking; web-share";
+      iframe.allowFullscreen = true;
+      iframe.referrerPolicy = "no-referrer";
+
+      surface.appendChild(iframe);
+      stage.appendChild(surface);
+
+      const canvas = createAnnotationCanvas(width, height, "main");
+      stage.appendChild(canvas);
+
+      contentRoot.appendChild(stage);
+
+      // srcdoc is used so the local HTML can run inside the iframe.
+      // A base target is added so clicked links open in a new tab where possible.
+      const injectedStyle = `
+        <style>
+          html, body {
+            margin: 0;
+            min-height: 100%;
+            box-sizing: border-box;
+          }
+
+          *, *::before, *::after {
+            box-sizing: border-box;
+          }
+
+          img, video, canvas, svg {
+            max-width: 100%;
+          }
+
+          table {
+            max-width: 100%;
+          }
+  
+    /* AnnotAI patch: keep AI Tools and Media launchers near the bottom of the toolbar */
+    #toolbar .launcherGroup {
+      order: 900;
+      width: 100%;
+      border-right: none;
+      border-top: 1px solid rgba(255,255,255,0.14);
+      padding-top: 8px;
+      margin-top: 4px;
+    }
+
+    #status {
+      order: 1000;
+      width: 100%;
+      border-top: 1px solid rgba(255,255,255,0.12);
+      padding-top: 8px;
+      margin-top: 4px;
+    }
+
+    #toolbar .launcherGroup .toolSelect {
+      min-width: 220px;
+    }
+
+    @media (max-width: 760px) {
+      #toolbar .launcherGroup {
+        order: 900;
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid rgba(255,255,255,0.14);
+      }
+
+      #status {
+        order: 1000;
+        width: 100%;
+      }
+
+      #toolbar .launcherGroup .toolSelect,
+      #toolbar .launcherGroup button {
+        width: 100%;
+      }
+    }
+
+
+    /* AnnotAI patch: launcher section bottom styling */
+    #toolbar .launcherGroup {
+      width: 100%;
+      border-right: none !important;
+      border-top: 1px solid rgba(255,255,255,0.18);
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+      padding-top: 10px;
+      padding-bottom: 10px;
+      margin-top: 6px;
+      margin-bottom: 4px;
+      background: rgba(37,99,235,0.14);
+    }
+
+    #toolbar .launcherGroup::before {
+      content: "AI Tools and Media";
+      display: block;
+      width: 100%;
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.82);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    #status {
+      width: 100%;
+      border-top: 1px solid rgba(255,255,255,0.12);
+      padding-top: 8px;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 760px) {
+      #toolbar .launcherGroup {
+        width: 100%;
+      }
+
+      #toolbar .launcherGroup .toolSelect,
+      #toolbar .launcherGroup button {
+        width: 100%;
+      }
+
+      #status {
+        width: 100%;
+      }
+    }
+
+      </style>
+      `;
+
+      const hasHtmlTag = /<html[\s>]/i.test(rawHtml);
+      const hasHeadTag = /<head[\s>]/i.test(rawHtml);
+
+      let finalHtml = rawHtml;
+
+      if (hasHeadTag) {
+        finalHtml = finalHtml.replace(/<head([^>]*)>/i, `<head$1><base target="_blank">${injectedStyle}`);
+      } else if (hasHtmlTag) {
+        finalHtml = finalHtml.replace(/<html([^>]*)>/i, `<html$1><head><base target="_blank">${injectedStyle}</head>`);
+      } else {
+        finalHtml = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <base target="_blank">
+            ${injectedStyle}
+          </head>
+          <body>
+            ${rawHtml}
+          </body>
+          </html>
+        `;
+      }
+
+      iframe.srcdoc = finalHtml;
+
+      setActiveCanvas(canvas);
+      setMode("off");
+      fitWidthIfMobile();
+      setStatus("Interactive HTML file opened: " + file.name);
     }
 
     async function openDocx(file) {
@@ -2261,7 +2565,14 @@
       if (["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(ext)) return openImageFromUrl(url);
       if (["mp4", "webm", "ogg", "mov"].includes(ext)) return openVideoFromUrl(url);
       if (ext === "pdf") return openPdfFromUrl(url);
-      if (["txt", "csv", "json", "xml", "html", "htm", "md"].includes(ext)) return openTextFromUrl(url);
+      if (["html", "htm"].includes(ext)) {
+        return createIframeStage(url, "HTML URL", 1000, 680, `
+          <b>Note:</b> This HTML page is loaded as an embedded webpage.
+          If it is blocked by browser security rules, use the Open External button.
+        `);
+      }
+
+      if (["txt", "csv", "json", "xml", "md"].includes(ext)) return openTextFromUrl(url);
       if (["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(ext)) return openOfficeUrl(url);
 
       createIframeStage(url, "URL", 1000, 680, `
@@ -2407,6 +2718,8 @@
         contentRoot.style.minWidth = Math.max(window.innerWidth, maxWidth + 48) + "px";
         contentRoot.style.minHeight = Math.max(window.innerHeight, totalHeight + 48) + "px";
       } else {
+        // Applies to images, videos, DOCX, spreadsheets, text, ZIP, EPUB,
+        // iframe URLs, and local interactive HTML/HTM files.
         const stage = document.querySelector(".stage");
 
         if (stage) {
@@ -2893,13 +3206,16 @@
     }
 
     initFloatingToolbar();
+    moveLaunchersToBottom();
 
     try {
       loadSavedLanguage();
+      moveLaunchersToBottom();
       setMode("off");
       collapseFloatingToolbar();
     } catch {}
 
+    moveLaunchersToBottom();
     updateZoomLabel();
   </script>
 
